@@ -1,8 +1,18 @@
+import { css } from '@emotion/react'
 import { Navigate, useParams } from 'react-router-dom'
 import { BuildingThumb } from '../../components/CampusMap'
 import { AreaTrend } from '../../components/charts'
 import { Card, CardHeader, Delta, PageHeader } from '../../components/ui'
 import { BUILDINGS, DAILY, getBuilding } from '../../data/mock'
+import { CountUp } from '../../motion'
+import { theme } from '../../theme'
+import { ps } from '../power/PowerTabs'
+
+const s = {
+  stats: css({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 20, [theme.mq.md]: { gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' } }),
+  stat: css({ padding: '20px 24px' }),
+  value: css(ps.num, { margin: '8px 0 4px' }),
+}
 
 export default function BuildingDetailPage() {
   const { id = '' } = useParams()
@@ -17,10 +27,10 @@ export default function BuildingDetailPage() {
     <>
       <PageHeader title={`건물 상세 - ${b.code} ${b.name}`} back={{ to: '/power/building', trail: ['전력 소비 시각화', '건물별'] }} />
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
-        <Card className="p-5">
-          <BuildingThumb building={b} className="h-44 w-full" />
-          <dl className="mt-5 flex flex-col gap-4 text-sm">
+      <div css={[ps.split(300, true), { marginTop: 0 }]}>
+        <Card css={ps.info}>
+          <BuildingThumb building={b} css={ps.thumb} />
+          <dl css={ps.infoList}>
             {[
               ['건물명', `${b.code} ${b.name}`],
               ['연면적', `${b.area.toLocaleString()} ㎡`],
@@ -29,42 +39,42 @@ export default function BuildingDetailPage() {
               ['실시간 사용량', `${b.kw.toLocaleString()} kW`],
             ].map(([k, v]) => (
               <div key={k}>
-                <dt className="text-xs text-gray-500">{k}</dt>
-                <dd className="mt-0.5 font-semibold">{v}</dd>
+                <dt css={ps.label}>{k}</dt>
+                <dd>{v}</dd>
               </div>
             ))}
           </dl>
         </Card>
 
-        <div className="flex flex-col gap-5">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-            <Card className="px-6 py-5">
-              <p className="text-sm text-gray-600">이번 달 사용량</p>
-              <p className="mt-1 text-[28px] font-bold">
-                {b.monthKwh.toLocaleString()}
-                <span className="ml-1 text-sm font-normal text-gray-500">kWh</span>
+        <div css={ps.stack}>
+          <div css={s.stats}>
+            <Card css={s.stat}>
+              <p css={ps.label}>이번 달 사용량</p>
+              <p css={s.value}>
+                <CountUp value={b.monthKwh} />
+                <span css={ps.unit}>kWh</span>
               </p>
               <Delta value={b.delta} compare="전월 대비" />
             </Card>
-            <Card className="px-6 py-5">
-              <p className="text-sm text-gray-600">평균 일일 사용량</p>
-              <p className="mt-1 text-[28px] font-bold">
-                {Math.round(b.monthKwh / 30).toLocaleString()}
-                <span className="ml-1 text-sm font-normal text-gray-500">kWh</span>
+            <Card css={s.stat}>
+              <p css={ps.label}>평균 일일 사용량</p>
+              <p css={s.value}>
+                <CountUp value={Math.round(b.monthKwh / 30)} />
+                <span css={ps.unit}>kWh</span>
               </p>
             </Card>
-            <Card className="px-6 py-5">
-              <p className="text-sm text-gray-600">전력 사용 순위</p>
-              <p className="mt-1 text-[28px] font-bold">
+            <Card css={s.stat}>
+              <p css={ps.label}>전력 사용 순위</p>
+              <p css={s.value}>
                 {rank}
-                <span className="ml-1 text-sm font-normal text-gray-500">위 / {BUILDINGS.length}개 건물</span>
+                <span css={ps.unit}>위 / {BUILDINGS.length}개 건물</span>
               </p>
             </Card>
           </div>
 
-          <Card className="flex-1">
+          <Card css={ps.grow}>
             <CardHeader title="일별 전력 사용량" sub="(kWh)" />
-            <div className="px-4 pb-4">
+            <div css={ps.chart}>
               <AreaTrend data={daily} x="date" y="kwh" height={320} />
             </div>
           </Card>

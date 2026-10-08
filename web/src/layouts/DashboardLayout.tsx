@@ -1,9 +1,11 @@
-import { Building2, ChartColumnBig, ChevronDown, Database, FileText, House, Leaf, ScanSearch, Settings, ShieldAlert, Sprout } from 'lucide-react'
-import { useState } from 'react'
+import { css } from '@emotion/react'
+import { useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
-import { cx } from '../components/ui'
+import { Icon } from '../components/Icon'
 import { CARBON_SAVING } from '../data/mock'
+import { CountUp, EASE, gsap, reducedMotion, useGSAP, useReveal } from '../motion'
+import { bigNumber, eyebrow, theme } from '../theme'
 
 const POWER_CHILDREN = [
   { to: '/power/building', label: '건물별' },
@@ -12,113 +14,203 @@ const POWER_CHILDREN = [
 ]
 
 const NAV = [
-  { to: '/forecast', label: '실시간 전력 예측', icon: ScanSearch },
-  { to: '/classroom', label: '강의실 추천', icon: Building2 },
-  { to: '/carbon', label: '탄소 절감 현황', icon: Leaf },
+  { to: '/forecast', label: '실시간 전력 예측', icon: 'query_stats' },
+  { to: '/classroom', label: '강의실 추천', icon: 'apartment' },
+  { to: '/carbon', label: '탄소 절감 현황', icon: 'eco' },
 ]
 
 const ADMIN_NAV = [
-  { to: '/inefficient', label: '비효율 구역 분석', icon: ShieldAlert },
-  { to: '/report', label: '리포트', icon: FileText },
-  { to: '/admin/data', label: '데이터 관리', icon: Database },
-  { to: '/settings', label: '설정', icon: Settings },
+  { to: '/inefficient', label: '비효율 구역 분석', icon: 'gpp_maybe' },
+  { to: '/report', label: '리포트', icon: 'description' },
+  { to: '/admin/data', label: '데이터 관리', icon: 'database' },
+  { to: '/settings', label: '설정', icon: 'settings' },
 ]
 
-const item = (active: boolean) =>
-  cx(
-    'flex items-center gap-3.5 rounded-xl px-4 py-3 text-[15px] transition-colors',
-    active ? 'bg-white/15 font-semibold text-white' : 'text-white/80 hover:bg-white/5 hover:text-white',
+function NavItem({ to, label, icon, end }: { to: string; label: string; icon: string; end?: boolean }) {
+  return (
+    <NavLink to={to} end={end} css={s.item}>
+      {({ isActive }) => (
+        <>
+          <Icon name={icon} fill={isActive} />
+          {label}
+        </>
+      )}
+    </NavLink>
   )
+}
 
 export default function DashboardLayout() {
   const { pathname } = useLocation()
   const { admin } = useAuth()
   const inPower = pathname.startsWith('/power')
   const [powerOpen, setPowerOpen] = useState(true)
+  const content = useReveal<HTMLDivElement>([pathname])
+  const powerPanel = useRef<HTMLDivElement>(null)
+  const bar = useRef<HTMLDivElement>(null)
+
+  // 아코디언: 접혀도 DOM 에 남기고 height/opacity 만 애니메이션 (접힌 동안은 inert)
+  useGSAP(
+    () => {
+      gsap.to(powerPanel.current, { height: powerOpen ? 'auto' : 0, autoAlpha: powerOpen ? 1 : 0, duration: reducedMotion() ? 0 : 0.4, ease: EASE })
+    },
+    { dependencies: [powerOpen] },
+  )
+
+  useGSAP(() => {
+    if (reducedMotion()) return
+    gsap.from(bar.current, { width: 0, duration: 1.2, ease: EASE, delay: 0.3 })
+  })
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col bg-gradient-to-b from-brand-900 to-[#03332d] px-4 py-7 text-white">
-        <Link to="/" className="mb-9 flex items-center gap-3 px-3">
-          <Sprout className="size-10 text-[#9bd36a]" strokeWidth={1.6} />
-          <div className="leading-tight">
-            <p className="text-lg font-bold">한밭대학교</p>
-            <p className="text-sm text-white/75">탄소중립 캠퍼스</p>
+    <div css={s.root}>
+      <aside css={s.aside}>
+        <Link to="/" css={s.logo}>
+          <Icon name="potted_plant" size={40} css={{ color: theme.color.lime }} />
+          <div css={{ lineHeight: 1.25 }}>
+            <p css={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>한밭대학교</p>
+            <p css={{ fontSize: 14, color: 'rgba(255,255,255,0.75)' }}>탄소중립 캠퍼스</p>
           </div>
         </Link>
 
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
-          <NavLink to="/" end className={({ isActive }) => item(isActive)}>
-            <House className="size-5" />
-            대시보드
-          </NavLink>
+        <nav css={s.nav}>
+          <NavItem to="/" end label="대시보드" icon="home" />
 
-          <div className={cx('rounded-xl', inPower && 'bg-white/5')}>
-            <button onClick={() => setPowerOpen((o) => !o)} className={cx(item(inPower && !powerOpen), 'w-full')}>
-              <ChartColumnBig className="size-5" />
-              <span className="flex-1 text-left">전력 소비 시각화</span>
-              <ChevronDown className={cx('size-4 transition-transform', !powerOpen && '-rotate-90')} />
+          <div css={[s.group, inPower && { background: 'rgba(255,255,255,0.05)' }]}>
+            <button onClick={() => setPowerOpen((o) => !o)} aria-expanded={powerOpen} data-active={inPower && !powerOpen} css={[s.item, { width: '100%' }]}>
+              <Icon name="bar_chart" fill={inPower} />
+              <span css={{ flex: 1, textAlign: 'left' }}>전력 소비 시각화</span>
+              <Icon name="expand_more" size={18} css={[s.chevron, !powerOpen && { transform: 'rotate(-90deg)' }]} />
             </button>
-            {powerOpen && (
-              <div className="flex flex-col gap-0.5 px-2 pb-2">
+            <div ref={powerPanel} inert={!powerOpen} css={{ overflow: 'hidden' }}>
+              <div css={s.children}>
                 {POWER_CHILDREN.map((c) => (
-                  <NavLink
-                    key={c.to}
-                    to={c.to}
-                    className={({ isActive }) =>
-                      cx('rounded-lg py-2.5 pl-10 text-sm transition-colors', isActive ? 'bg-white/15 font-semibold text-white' : 'text-white/70 hover:text-white')
-                    }
-                  >
+                  <NavLink key={c.to} to={c.to} css={s.child}>
                     {c.label}
                   </NavLink>
                 ))}
               </div>
-            )}
+            </div>
           </div>
 
-          {NAV.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} className={({ isActive }) => item(isActive)}>
-              <Icon className="size-5" />
-              {label}
-            </NavLink>
+          {NAV.map((n) => (
+            <NavItem key={n.to} {...n} />
           ))}
 
           {admin && (
             <>
-              <p className="mt-5 mb-1 px-4 text-xs font-semibold tracking-wide text-white/45">관리자</p>
-              {ADMIN_NAV.map(({ to, label, icon: Icon }) => (
-                <NavLink key={to} to={to} className={({ isActive }) => item(isActive)}>
-                  <Icon className="size-5" />
-                  {label}
-                </NavLink>
+              <p css={[eyebrow, s.section]}>관리자</p>
+              {ADMIN_NAV.map((n) => (
+                <NavItem key={n.to} {...n} />
               ))}
             </>
           )}
         </nav>
 
-        <div className="mt-4 rounded-2xl border border-white/15 bg-white/[0.03] p-5 [@media(max-height:860px)]:hidden">
-          <p className="flex items-center gap-2 text-sm text-white/90">
-            <Leaf className="size-5 text-[#9bd36a]" />
+        <div css={s.saving}>
+          <p css={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>
+            <Icon name="eco" fill css={{ color: theme.color.lime }} />
             오늘의 탄소 절감 기여도
           </p>
-          <p className="mt-3 text-center text-3xl font-bold">
-            {CARBON_SAVING.today}
-            <span className="ml-1 text-sm font-normal text-white/80">kgCO₂</span>
+          <p css={[bigNumber, { marginTop: 12, textAlign: 'center', fontSize: 34 }]}>
+            <CountUp value={CARBON_SAVING.today} />
+            <span css={{ marginLeft: 4, fontSize: 14, fontWeight: 400, letterSpacing: 0, color: 'rgba(255,255,255,0.8)' }}>kgCO₂</span>
           </p>
-          <p className="mt-3 text-sm text-white/85">
-            나무 <b className="text-base text-white">{CARBON_SAVING.trees}</b> 그루 심은 효과
+          <p css={{ marginTop: 12, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>
+            나무{' '}
+            <b css={{ fontSize: 16, color: '#fff' }}>
+              <CountUp value={CARBON_SAVING.trees} />
+            </b>{' '}
+            그루 심은 효과
           </p>
-          <div className="mt-2 h-2 rounded-full bg-white/15">
-            <div className="h-full rounded-full bg-[#8cc63f]" style={{ width: `${CARBON_SAVING.progress}%` }} />
+          <div css={s.track}>
+            <div ref={bar} css={s.bar} style={{ width: `${CARBON_SAVING.progress}%` }} />
           </div>
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 px-10 py-8">
-        <div className="mx-auto max-w-[1600px]">
+      <main css={s.main}>
+        <div ref={content} css={{ margin: '0 auto', maxWidth: 1600 }}>
           <Outlet />
         </div>
       </main>
     </div>
   )
+}
+
+const active = '&[aria-current="page"], &[data-active="true"]'
+
+const s = {
+  root: css({ display: 'flex', minHeight: '100vh' }),
+  aside: css({
+    position: 'sticky',
+    top: 0,
+    display: 'flex',
+    height: '100vh',
+    width: 240,
+    flexShrink: 0,
+    flexDirection: 'column',
+    background: theme.color.night,
+    padding: '24px 12px',
+    color: '#fff',
+  }),
+  logo: css({ marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12, padding: '0 12px' }),
+  nav: css({ display: 'flex', flex: 1, flexDirection: 'column', gap: 2, overflowY: 'auto' }),
+
+  item: css({
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: theme.radius.sm,
+    padding: '9px 12px',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    transition: `background 0.3s ${theme.ease}, color 0.3s ${theme.ease}`,
+    '& > .material-symbols-rounded': { transition: `font-variation-settings 0.25s ${theme.ease}, color 0.3s ${theme.ease}, transform 0.3s ${theme.ease}` },
+    '&:hover': { background: 'rgba(255,255,255,0.05)', color: '#fff' },
+    '&:hover > .material-symbols-rounded:first-of-type': { transform: 'translateX(2px)' },
+    // 활성: 라임 알약 + 어두운 글자
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      left: 0,
+      top: '50%',
+      width: 3,
+      height: 18,
+      marginTop: -9,
+      borderRadius: theme.radius.pill,
+      display: 'none',
+      background: theme.color.lime,
+      transform: 'scaleY(0)',
+      transition: `transform 0.35s ${theme.ease}`,
+    },
+    [active]: { background: theme.color.lime, fontWeight: 600, color: theme.color.night, '&:hover': { background: theme.color.lime, color: theme.color.night } },
+    [`&[aria-current="page"]::before, &[data-active="true"]::before`]: { transform: 'scaleY(1)' },
+    [`&[aria-current="page"] > .material-symbols-rounded:first-of-type, &[data-active="true"] > .material-symbols-rounded:first-of-type`]: { color: theme.color.night },
+  }),
+  chevron: css({ transition: `transform 0.3s ${theme.ease}` }),
+  group: css({ borderRadius: theme.radius.md, transition: `background 0.3s ${theme.ease}` }),
+  children: css({ display: 'flex', flexDirection: 'column', gap: 2, padding: '0 8px 8px' }),
+  child: css({
+    borderRadius: theme.radius.sm,
+    padding: '8px 0 8px 38px',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.55)',
+    transition: `background 0.3s ${theme.ease}, color 0.3s ${theme.ease}, padding 0.3s ${theme.ease}`,
+    '&:hover': { color: '#fff', paddingLeft: 42 },
+    '&[aria-current="page"]': { background: theme.color.lime, fontWeight: 600, color: theme.color.night },
+  }),
+  section: css({ margin: '20px 0 4px', padding: '0 12px', color: 'rgba(255,255,255,0.35)' }),
+
+  saving: css({
+    marginTop: 16,
+    borderRadius: theme.radius.lg,
+    background: theme.color.nightSoft,
+    padding: 16,
+    '@media (max-height: 860px)': { display: 'none' },
+  }),
+  track: css({ marginTop: 8, height: 3, overflow: 'hidden', borderRadius: theme.radius.pill, background: 'rgba(255,255,255,0.12)' }),
+  bar: css({ height: '100%', borderRadius: theme.radius.pill, background: theme.color.lime }),
+
+  main: css({ minWidth: 0, flex: 1, padding: '24px 28px' }),
 }

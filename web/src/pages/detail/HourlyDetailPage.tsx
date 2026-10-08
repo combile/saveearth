@@ -1,7 +1,11 @@
-import { CalendarDays } from 'lucide-react'
-import { AreaTrend, Legend } from '../../components/charts'
+import { css } from '@emotion/react'
+import { AreaTrend, CHART, Legend } from '../../components/charts'
+import { Icon } from '../../components/Icon'
 import { Card, CardHeader, PageHeader, SelectBox } from '../../components/ui'
 import { HOURLY } from '../../data/mock'
+import { CountUp } from '../../motion'
+import { theme } from '../../theme'
+import { ps } from '../power/PowerTabs'
 
 const peak = HOURLY.reduce((a, b) => (b.kwh > a.kwh ? b : a))
 const BANDS = [
@@ -11,51 +15,59 @@ const BANDS = [
   { label: '저녁 (18시~24시)', from: 18, to: 24 },
 ].map((b) => ({ ...b, avg: Math.round(HOURLY.slice(b.from, b.to).reduce((s, h) => s + h.kwh, 0) / (b.to - b.from)) }))
 
+const s = {
+  peak: css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24, padding: '20px 24px 0' }),
+  divider: css({ width: 1, height: 40, background: theme.color.line }),
+  bands: css({ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16, padding: '0 24px 24px', [theme.mq.lg]: { gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' } }),
+  value: css(ps.num, { fontSize: 24 }),
+}
+
 export default function HourlyDetailPage() {
   return (
     <>
       <PageHeader title="시간대별 상세 분석" back={{ to: '/power/hourly', trail: ['전력 소비 시각화', '시간대별'] }} />
 
-      <div className="mb-5 flex flex-wrap items-end gap-6">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-gray-500">일자 선택</span>
-          <SelectBox value="2026.04.28 (화)" icon={<CalendarDays className="size-4" />} />
+      <div css={ps.fields} data-reveal>
+        <div css={ps.field}>
+          <span css={ps.label}>일자 선택</span>
+          <SelectBox value="2026.04.28 (화)" icon={<Icon name="calendar_month" size={16} />} />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-gray-500">비교 기준</span>
+        <div css={ps.field}>
+          <span css={ps.label}>비교 기준</span>
           <SelectBox value="7일 평균" options={['7일 평균', '30일 평균', '전년 동일']} />
         </div>
       </div>
 
       <Card>
-        <div className="flex flex-wrap items-center gap-6 px-6 pt-5">
+        <div css={s.peak}>
           <div>
-            <p className="text-2xl font-bold">{peak.hour}</p>
-            <p className="text-xs text-gray-500">피크 시간</p>
+            <p css={s.value}>{peak.hour}</p>
+            <p css={ps.label}>피크 시간</p>
           </div>
-          <span className="h-10 w-px bg-gray-200" />
-          <p className="text-2xl font-bold">
-            {peak.kwh.toLocaleString()} <span className="text-sm font-normal text-gray-500">kWh</span>
+          <span css={s.divider} />
+          <p css={s.value}>
+            <CountUp value={peak.kwh} /> <span css={ps.unit}>kWh</span>
           </p>
-          <div className="ml-auto">
-            <Legend items={[{ name: '선택일', color: '#2f8a5b' }, { name: '7일 평균', color: '#f59e0b' }]} />
+          <div css={ps.pushRight}>
+            {/* 비교선 색은 AreaTrend 의 compareKey 선 색과 맞춘다 */}
+            <Legend items={[{ name: '선택일', color: CHART.mid }, { name: '7일 평균', color: theme.color.warn }]} />
           </div>
         </div>
-        <div className="px-4 pb-4">
+        <div css={ps.chart}>
           <AreaTrend data={HOURLY} x="hour" y="kwh" compareKey="avg" height={340} />
         </div>
       </Card>
 
-      <Card className="mt-5">
+      <Card css={ps.gap}>
         <CardHeader title="시간대별 요약" />
-        <div className="grid grid-cols-2 gap-4 px-6 pb-6 lg:grid-cols-4">
+        <div css={s.bands}>
           {BANDS.map((b) => (
-            <div key={b.label} className="rounded-xl border border-gray-200/80 px-5 py-4">
-              <p className="text-xs text-gray-500">{b.label}</p>
-              <p className="mt-1 text-2xl font-bold">
-                {b.avg.toLocaleString()} <span className="text-sm font-normal text-gray-500">kWh</span>
+            <div key={b.label} css={ps.tile}>
+              <p css={ps.label}>{b.label}</p>
+              <p css={[s.value, { margin: '6px 0 2px' }]}>
+                <CountUp value={b.avg} /> <span css={ps.unit}>kWh</span>
               </p>
-              <p className="text-xs text-gray-500">평균</p>
+              <p css={ps.caption}>평균</p>
             </div>
           ))}
         </div>

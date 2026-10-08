@@ -1,6 +1,6 @@
 # 지구를 지켜라 — 한밭대 탄소중립 캠퍼스 대시보드 (웹)
 
-React + Vite + TypeScript + Tailwind v4 + Recharts
+React + Vite + TypeScript + Emotion + GSAP + Material Symbols + Recharts
 
 ```bash
 npm install

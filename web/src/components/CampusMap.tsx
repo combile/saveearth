@@ -1,13 +1,84 @@
+import { css, keyframes } from '@emotion/react'
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { type Building, type Level, levelOf } from '../data/mock'
-import { cx } from './ui'
+import { gsap, reducedMotion, useGSAP } from '../motion'
+import { theme } from '../theme'
 
 const MAP_SRC = '/images/campus-map.webp'
 
-const CALLOUT_TONE: Record<Level, string> = {
-  high: 'border-red-400 text-red-500',
-  mid: 'border-amber-400 text-amber-500',
-  low: 'border-emerald-500 text-emerald-600',
+const c = theme.color
+
+const CALLOUT_TONE: Record<Level, string> = { high: c.danger, mid: c.warn, low: c.good }
+const PIN_TONE = { danger: c.danger, warn: c.warn, good: c.good }
+
+const pulse = keyframes({ from: { transform: 'scale(1)', opacity: 0.55 }, to: { transform: 'scale(2.4)', opacity: 0 } })
+
+const fill = css({ position: 'absolute', inset: 0, width: '100%', height: '100%' })
+/** 좌표(%)에 중심을 맞추는 래퍼. transform 을 여기서 쓰므로 GSAP 은 안쪽 [data-pop] 만 건드린다 */
+const anchor = css({ position: 'absolute', transform: 'translate(-50%, -50%)' })
+
+const s = {
+  // 말풍선 크기가 맵 폭(cqw)에 비례하도록 컨테이너로 선언
+  root: css({ containerType: 'inline-size', position: 'relative', aspectRatio: '1670 / 850', width: '100%', userSelect: 'none' }),
+  img: css(fill, { objectFit: 'contain' }),
+  lines: css(fill, { pointerEvents: 'none' }),
+  dot: css(anchor, { width: 6, height: 6, borderRadius: '50%', background: c.ink, boxShadow: `0 0 0 2px ${c.surface}` }),
+  callout: css({
+    display: 'block',
+    borderRadius: theme.radius.sm,
+    border: '1.5px solid currentColor',
+    background: 'rgba(255, 255, 255, 0.95)',
+    padding: '0.3cqw 0.6cqw',
+    textAlign: 'center',
+    lineHeight: 1.25,
+    transition: `transform 0.3s ${theme.ease}`,
+    '&:hover': { transform: 'scale(1.06)' },
+  }),
+  calloutName: css({ fontSize: 'clamp(8px, 1.15cqw, 12px)', fontWeight: 500, whiteSpace: 'nowrap', color: c.ink }),
+  calloutValue: css({ fontSize: 'clamp(9px, 1.3cqw, 13px)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }),
+  pin: css({
+    position: 'relative',
+    display: 'grid',
+    placeItems: 'center',
+    width: 28,
+    height: 28,
+    borderRadius: '50%',
+    background: 'currentColor',
+    fontSize: 14,
+    fontWeight: 700,
+    boxShadow: `0 0 0 2px ${c.surface}`,
+    '& > b': { color: c.surface },
+  }),
+  // danger 핀만 은은한 펄스 링
+  pinPulse: css({
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      inset: 0,
+      borderRadius: '50%',
+      background: 'currentColor',
+      animation: `${pulse} 1.8s ${theme.ease} infinite`,
+      '@media (prefers-reduced-motion: reduce)': { animation: 'none', opacity: 0 },
+    },
+  }),
+  legend: css({
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    borderRadius: theme.radius.md,
+    border: `1px solid ${c.line}`,
+    background: 'rgba(255, 255, 255, 0.9)',
+    padding: '10px 12px',
+    fontSize: 12,
+    color: c.sub,
+  }),
+  legendUnit: css({ marginBottom: 6, fontFamily: theme.font.mono, fontSize: 11, letterSpacing: '0.08em', color: c.mute }),
+  legendBody: css({ display: 'flex', gap: 8 }),
+  legendBar: css({ width: 6, height: 64, borderRadius: theme.radius.pill, background: `linear-gradient(${c.danger}, ${c.warn}, ${c.good})` }),
+  legendLabels: css({ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }),
+  thumb: css({ position: 'relative', overflow: 'hidden', borderRadius: theme.radius.md, background: c.lineSoft }),
+  thumbImg: css({ position: 'absolute', top: '50%', left: '50%', width: '400%', maxWidth: 'none' }),
 }
 
 export interface MapPin {
@@ -25,65 +96,73 @@ interface Props {
 
 /** 한밭대 3D 캠퍼스 맵 위에 건물별 사용량 말풍선 또는 경고 핀을 올린다. */
 export default function CampusMap({ callouts = [], pins = [], linkTo, legend, className }: Props) {
+  const root = useRef<HTMLDivElement>(null)
+
+  // 말풍선·핀 팝인
+  useGSAP(
+    () => {
+      if (reducedMotion()) return
+      gsap.from('[data-pop]', { scale: 0.5, autoAlpha: 0, duration: 0.5, ease: 'back.out(1.7)', stagger: 0.05, delay: 0.2 })
+    },
+    { scope: root },
+  )
+
   return (
-    <div className={cx('@container relative aspect-[1670/850] w-full select-none', className)}>
-      <img src={MAP_SRC} alt="국립한밭대학교 3D 캠퍼스 맵" className="absolute inset-0 size-full object-contain" draggable={false} />
+    <div ref={root} css={s.root} className={className}>
+      <img src={MAP_SRC} alt="국립한밭대학교 3D 캠퍼스 맵" css={s.img} draggable={false} />
 
       {callouts.length > 0 && (
-        <svg className="pointer-events-none absolute inset-0 size-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <svg css={s.lines} viewBox="0 0 100 100" preserveAspectRatio="none">
           {callouts.map((b) => (
-            <line key={b.id} x1={b.x} y1={b.y} x2={b.labelX} y2={b.labelY} stroke="#374151" strokeOpacity={0.7} strokeWidth={1} vectorEffect="non-scaling-stroke" />
+            <line key={b.id} x1={b.x} y1={b.y} x2={b.labelX} y2={b.labelY} stroke={c.ink} strokeOpacity={0.55} strokeWidth={1} vectorEffect="non-scaling-stroke" />
           ))}
         </svg>
       )}
 
       {callouts.map((b) => {
+        const tone = { color: CALLOUT_TONE[levelOf(b.kw)] }
         const body = (
-          <div className={cx('rounded-lg border-2 bg-white/95 px-[0.6cqw] py-[0.3cqw] text-center leading-tight shadow-sm', CALLOUT_TONE[levelOf(b.kw)])}>
-            <p className="text-[clamp(8px,1.15cqw,12px)] font-medium whitespace-nowrap text-gray-800">
+          <>
+            <p css={s.calloutName}>
               {b.name} ({b.code})
             </p>
-            <p className="text-[clamp(9px,1.3cqw,13px)] font-semibold">{b.kw.toLocaleString()} kW</p>
-          </div>
+            <p css={s.calloutValue}>{b.kw.toLocaleString()} kW</p>
+          </>
         )
         return (
           <div key={b.id}>
-            <span className="absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gray-700 ring-2 ring-white" style={{ left: `${b.x}%`, top: `${b.y}%` }} />
-            <div className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${b.labelX}%`, top: `${b.labelY}%` }}>
-              {linkTo ? (
-                <Link to={linkTo(b)} className="block transition-transform hover:scale-105">
-                  {body}
-                </Link>
-              ) : (
-                body
-              )}
+            <span css={s.dot} style={{ left: `${b.x}%`, top: `${b.y}%` }} />
+            <div css={anchor} style={{ left: `${b.labelX}%`, top: `${b.labelY}%` }}>
+              <div data-pop>
+                {linkTo ? (
+                  <Link to={linkTo(b)} css={s.callout} style={tone}>
+                    {body}
+                  </Link>
+                ) : (
+                  <div css={s.callout} style={tone}>
+                    {body}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )
       })}
 
       {pins.map(({ building: b, tone }) => (
-        <span
-          key={b.id}
-          className={cx(
-            'absolute grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-sm font-bold text-white shadow-md ring-4',
-            tone === 'danger' && 'bg-red-500 ring-red-500/25',
-            tone === 'warn' && 'bg-amber-400 ring-amber-400/30',
-            tone === 'good' && 'bg-emerald-500 ring-emerald-500/25',
-          )}
-          style={{ left: `${b.x}%`, top: `${b.y}%` }}
-          title={`${b.name} (${b.code})`}
-        >
-          !
+        <span key={b.id} css={anchor} style={{ left: `${b.x}%`, top: `${b.y}%` }} title={`${b.name} (${b.code})`}>
+          <span data-pop css={[s.pin, tone === 'danger' && s.pinPulse]} style={{ color: PIN_TONE[tone] }}>
+            <b css={{ position: 'relative' }}>!</b>
+          </span>
         </span>
       ))}
 
       {legend && (
-        <div className="absolute top-2 left-2 rounded-xl border border-gray-200 bg-white/90 px-3 py-2.5 text-xs text-gray-600">
-          <p className="mb-1.5">(kW)</p>
-          <div className="flex gap-2">
-            <span className="h-16 w-2 rounded-full bg-gradient-to-b from-red-400 via-amber-300 to-emerald-400" />
-            <span className="flex flex-col justify-between">
+        <div css={s.legend}>
+          <p css={s.legendUnit}>(kW)</p>
+          <div css={s.legendBody}>
+            <span css={s.legendBar} />
+            <span css={s.legendLabels}>
               <span>높음</span>
               <span>낮음</span>
             </span>
@@ -97,14 +176,8 @@ export default function CampusMap({ callouts = [], pins = [], linkTo, legend, cl
 /** 캠퍼스 맵을 확대해서 특정 건물 주변을 썸네일로 보여준다 (건물 사진 대용). */
 export function BuildingThumb({ building, className }: { building: Building; className?: string }) {
   return (
-    <div className={cx('relative overflow-hidden rounded-xl bg-gray-100', className)} role="img" aria-label={`${building.name} 위치`}>
-      <img
-        src={MAP_SRC}
-        alt=""
-        className="absolute top-1/2 left-1/2 w-[400%] max-w-none"
-        style={{ transform: `translate(-${building.x}%, -${building.y}%)` }}
-        draggable={false}
-      />
+    <div css={s.thumb} className={className} role="img" aria-label={`${building.name} 위치`}>
+      <img src={MAP_SRC} alt="" css={s.thumbImg} style={{ transform: `translate(-${building.x}%, -${building.y}%)` }} draggable={false} />
     </div>
   )
 }
