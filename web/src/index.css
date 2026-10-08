@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+
+/* 피그마 'Color' 섹션 팔레트 */
+@theme {
+  --color-brand-900: #02302c;
+  --color-brand-800: #0a4136;
+  --color-brand-700: #0d6b43;
+  --color-brand-600: #16776e;
+  --color-brand-300: #7cb69e;
+  --color-brand-100: #e7f3ec;
+  --color-danger: #ff0000;
+  --color-warn: #ffd000;
+  --color-good: #00c976;
+  --color-ink: #444444;
+  --font-sans: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
+}
+
+body {
+  @apply bg-[#f6f7f6] text-gray-900 antialiased;
+}
