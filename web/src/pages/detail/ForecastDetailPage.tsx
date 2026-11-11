@@ -1,17 +1,15 @@
+/* Hallmark · v2.0.0 · redesign: full · shape: app screen · theme: brand (theme.ts night + lime, Pretendard) · signature: 예측 장부, 위치·제원 옆에 1·3·6시간 예측값과 실시간 추이를 한 판에 · states: full (mock) */
+/* critique: 정보 카드와 예측 타일 카드, 차트 카드가 따로 놀았다. 건물 상세와 같은 장부 한 장으로 모으고 예측값을 앞에 세운다 */
 import { css } from '@emotion/react'
 import { Navigate, useParams } from 'react-router-dom'
 import { BuildingThumb } from '../../components/CampusMap'
 import { AreaTrend } from '../../components/charts'
-import { Card, CardHeader, PageHeader } from '../../components/ui'
+import { Card, CardHeader, PageHeader, StatRows } from '../../components/ui'
 import { REALTIME_TREND, getBuilding, levelOf } from '../../data/mock'
 import { CountUp } from '../../motion'
-import { theme } from '../../theme'
-import { ps } from '../power/PowerTabs'
+import { bigNumber, theme } from '../../theme'
 
-const s = {
-  tiles: css({ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, padding: '0 24px 24px', textAlign: 'center' }),
-  value: css(ps.num, { marginTop: 6, fontSize: 24 }),
-}
+const { color: c, mq } = theme
 
 export default function ForecastDetailPage() {
   const { id = '' } = useParams()
@@ -26,53 +24,62 @@ export default function ForecastDetailPage() {
     <>
       <PageHeader title={`건물 예측 상세 - ${b.code} ${b.name}`} back={{ to: '/forecast', trail: ['실시간 전력 예측'] }} />
 
-      <div css={[ps.split(300, true), { marginTop: 0 }]}>
-        <Card css={ps.info}>
-          <BuildingThumb building={b} css={ps.thumb} />
-          <dl css={ps.infoList}>
+      <Card css={s.sheet}>
+        <aside css={s.side}>
+          <BuildingThumb building={b} css={s.thumb} />
+          <StatRows
+            rows={[
+              { label: '건물명', value: `${b.code} ${b.name}` },
+              { label: '연면적', value: `${b.area.toLocaleString()} ㎡` },
+              { label: '현재 사용량', value: `${b.kw.toLocaleString()} kW` },
+              { label: '전력 예비율', value: <span style={{ color: reserve.c }}>{reserve.v}</span> },
+            ]}
+          />
+        </aside>
+
+        <div css={s.main}>
+          <CardHeader title="예측 사용량" sub="(kW)" />
+          <dl css={s.figs}>
             {[
-              ['건물명', `${b.code} ${b.name}`],
-              ['연면적', `${b.area.toLocaleString()} ㎡`],
-              ['현재 사용량', `${b.kw.toLocaleString()} kW`],
-            ].map(([k, v]) => (
-              <div key={k}>
-                <dt css={ps.label}>{k}</dt>
-                <dd>{v}</dd>
+              ['1시간 후', 1.074],
+              ['3시간 후', 1.24],
+              ['6시간 후', 1.373],
+            ].map(([label, f]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd css={s.fig}>
+                  <CountUp value={Math.round(b.kw * (f as number))} />
+                  <span css={s.unit}>kW</span>
+                </dd>
               </div>
             ))}
-            <div>
-              <dt css={ps.label}>전력 예비율</dt>
-              <dd style={{ color: reserve.c }}>{reserve.v}</dd>
-            </div>
           </dl>
-        </Card>
 
-        <div css={ps.stack}>
-          <Card>
-            <CardHeader title="예측 사용량" sub="(kW)" />
-            <div css={s.tiles}>
-              {[
-                ['1시간 후', 1.074],
-                ['3시간 후', 1.24],
-                ['6시간 후', 1.373],
-              ].map(([label, f]) => (
-                <div key={label} css={ps.tile}>
-                  <p css={ps.label}>{label}</p>
-                  <p css={s.value}>
-                    <CountUp value={Math.round(b.kw * (f as number))} /> <span css={ps.unit}>kW</span>
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
-          <Card css={ps.grow}>
-            <CardHeader title="실시간 사용량 추이" sub="(kW)" />
-            <div css={ps.chart}>
-              <AreaTrend data={trend} x="time" y="kw" color={theme.color.danger} unit="kW" height={300} />
-            </div>
-          </Card>
+          <CardHeader title="실시간 사용량 추이" sub="(kW)" />
+          <div css={s.chart}>
+            <AreaTrend data={trend} x="time" y="kw" color={theme.color.danger} unit="kW" height={300} />
+          </div>
         </div>
-      </div>
+      </Card>
     </>
   )
+}
+
+const s = {
+  sheet: css({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', [mq.xl]: { gridTemplateColumns: '300px minmax(0, 1fr)' } }),
+  side: css({ paddingTop: 20, borderBottom: `1px solid ${c.lineSoft}`, [mq.xl]: { borderBottom: 0, borderRight: `1px solid ${c.lineSoft}` } }),
+  thumb: css({ height: 176, margin: '0 24px 8px' }),
+  main: css({ minWidth: 0, display: 'flex', flexDirection: 'column' }),
+  figs: css({
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    borderTop: `1px solid ${c.lineSoft}`,
+    borderBottom: `1px solid ${c.lineSoft}`,
+    '& > div': { padding: '16px 16px 20px', [mq.md]: { padding: '16px 24px 20px' } },
+    '& > div + div': { borderLeft: `1px solid ${c.lineSoft}` },
+    '& dt': { fontSize: 13, color: c.sub },
+  }),
+  fig: css(bigNumber, { marginTop: 6, display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 4, fontSize: 24, [mq.md]: { fontSize: 32 } }),
+  unit: css({ fontSize: 13, fontWeight: 400, letterSpacing: 0, color: c.sub }),
+  chart: css({ padding: '0 16px 16px' }),
 }

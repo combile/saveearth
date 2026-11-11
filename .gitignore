@@ -1,2 +1,16 @@
 .DS_Store
 지구를지켜라_화면캡처/
+
+# 개인정보(학번·연락처)가 든 계획서 원본과 임시 잠금 파일
+*.docx
+*.hwp
+~$*
+
+# 로컬 작업 산출물 (윤문 중간 파일, Hallmark 검사 기록)
+_workspace/
+.hallmark/
+
+# 환경 변수 (MQTT 접속 정보)
+.env
+.env.*
+!.env.example

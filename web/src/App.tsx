@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, RequireAdmin } from './auth'
-import IntroLoader from './components/IntroLoader'
 import DashboardLayout from './layouts/DashboardLayout'
 import DataManagementPage from './pages/admin/DataManagementPage'
 import CarbonPage from './pages/CarbonPage'
@@ -13,6 +12,7 @@ import HourlyDetailPage from './pages/detail/HourlyDetailPage'
 import SeasonalDetailPage from './pages/detail/SeasonalDetailPage'
 import ForecastPage from './pages/ForecastPage'
 import InefficientPage from './pages/InefficientPage'
+import LivePage from './pages/LivePage'
 import LoginPage from './pages/LoginPage'
 import PowerBuildingPage from './pages/power/PowerBuildingPage'
 import PowerHourlyPage from './pages/power/PowerHourlyPage'
@@ -25,7 +25,6 @@ const adminOnly = (page: ReactNode) => <RequireAdmin>{page}</RequireAdmin>
 export default function App() {
   return (
     <AuthProvider>
-      <IntroLoader />
       <Routes>
         <Route path="admin/login" element={<LoginPage />} />
         <Route path="login" element={<Navigate to="/admin/login" replace />} />
@@ -39,6 +38,7 @@ export default function App() {
           <Route path="power/hourly/detail" element={<HourlyDetailPage />} />
           <Route path="power/seasonal" element={<PowerSeasonalPage />} />
           <Route path="power/seasonal/detail" element={<SeasonalDetailPage />} />
+          <Route path="live" element={<LivePage />} />
           <Route path="forecast" element={<ForecastPage />} />
           <Route path="forecast/:id" element={<ForecastDetailPage />} />
           <Route path="classroom" element={<ClassroomPage />} />

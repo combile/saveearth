@@ -1,10 +1,10 @@
 import { css } from '@emotion/react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { Icon } from '../components/Icon'
 import { CARBON_SAVING } from '../data/mock'
-import { CountUp, EASE, gsap, reducedMotion, useGSAP, useReveal } from '../motion'
+import { CountUp, useReveal } from '../motion'
 import { bigNumber, eyebrow, theme } from '../theme'
 
 const POWER_CHILDREN = [
@@ -14,6 +14,7 @@ const POWER_CHILDREN = [
 ]
 
 const NAV = [
+  { to: '/live', label: '실시간 전력 모니터', icon: 'sensors' },
   { to: '/forecast', label: '실시간 전력 예측', icon: 'query_stats' },
   { to: '/classroom', label: '강의실 추천', icon: 'apartment' },
   { to: '/carbon', label: '탄소 절감 현황', icon: 'eco' },
@@ -47,41 +48,52 @@ export default function DashboardLayout() {
   const content = useReveal<HTMLDivElement>([pathname])
   const powerPanel = useRef<HTMLDivElement>(null)
   const bar = useRef<HTMLDivElement>(null)
+  // 1024px 미만: 사이드바가 왼쪽에서 밀려 나오는 서랍이 된다
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  // 아코디언: 접혀도 DOM 에 남기고 height/opacity 만 애니메이션 (접힌 동안은 inert)
-  useGSAP(
-    () => {
-      gsap.to(powerPanel.current, { height: powerOpen ? 'auto' : 0, autoAlpha: powerOpen ? 1 : 0, duration: reducedMotion() ? 0 : 0.4, ease: EASE })
-    },
-    { dependencies: [powerOpen] },
-  )
-
-  useGSAP(() => {
-    if (reducedMotion()) return
-    gsap.from(bar.current, { width: 0, duration: 1.2, ease: EASE, delay: 0.3 })
-  })
+  useEffect(() => setMenuOpen(false), [pathname])
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [menuOpen])
 
   return (
     <div css={s.root}>
-      <aside css={s.aside}>
+      <header css={s.topbar}>
+        <Link to="/" css={s.topLogo} aria-label="대시보드로">
+          <Icon name="potted_plant" size={28} css={{ color: theme.color.lime }} />
+          탄소중립 캠퍼스
+        </Link>
+        <button type="button" css={s.menuBtn} onClick={() => setMenuOpen(true)} aria-label="메뉴 열기" aria-expanded={menuOpen} aria-controls="side-nav">
+          <Icon name="menu" size={24} />
+        </button>
+      </header>
+      {menuOpen && <div css={s.backdrop} onClick={() => setMenuOpen(false)} />}
+
+      <aside id="side-nav" css={s.aside} data-open={menuOpen || undefined}>
+        <button type="button" css={[s.menuBtn, s.closeBtn]} onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">
+          <Icon name="close" size={22} />
+        </button>
         <Link to="/" css={s.logo}>
           <Icon name="potted_plant" size={40} css={{ color: theme.color.lime }} />
           <div css={{ lineHeight: 1.25 }}>
             <p css={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>한밭대학교</p>
-            <p css={{ fontSize: 14, color: 'rgba(255,255,255,0.75)' }}>탄소중립 캠퍼스</p>
+            <p css={{ fontSize: 14, color: theme.onDark(0.75) }}>탄소중립 캠퍼스</p>
           </div>
         </Link>
 
         <nav css={s.nav}>
           <NavItem to="/" end label="대시보드" icon="home" />
 
-          <div css={[s.group, inPower && { background: 'rgba(255,255,255,0.05)' }]}>
+          <div css={[s.group, inPower && { background: theme.onDark(0.05) }]}>
             <button onClick={() => setPowerOpen((o) => !o)} aria-expanded={powerOpen} data-active={inPower && !powerOpen} css={[s.item, { width: '100%' }]}>
               <Icon name="bar_chart" fill={inPower} />
               <span css={{ flex: 1, textAlign: 'left' }}>전력 소비 시각화</span>
               <Icon name="expand_more" size={18} css={[s.chevron, !powerOpen && { transform: 'rotate(-90deg)' }]} />
             </button>
-            <div ref={powerPanel} inert={!powerOpen} css={{ overflow: 'hidden' }}>
+            <div ref={powerPanel} hidden={!powerOpen}>
               <div css={s.children}>
                 {POWER_CHILDREN.map((c) => (
                   <NavLink key={c.to} to={c.to} css={s.child}>
@@ -107,17 +119,17 @@ export default function DashboardLayout() {
         </nav>
 
         <div css={s.saving}>
-          <p css={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>
+          <p css={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: theme.onDark(0.9) }}>
             <Icon name="eco" fill css={{ color: theme.color.lime }} />
             오늘의 탄소 절감 기여도
           </p>
           <p css={[bigNumber, { marginTop: 12, textAlign: 'center', fontSize: 34 }]}>
             <CountUp value={CARBON_SAVING.today} />
-            <span css={{ marginLeft: 4, fontSize: 14, fontWeight: 400, letterSpacing: 0, color: 'rgba(255,255,255,0.8)' }}>kgCO₂</span>
+            <span css={{ marginLeft: 4, fontSize: 14, fontWeight: 400, letterSpacing: 0, color: theme.onDark(0.8) }}>kgCO₂</span>
           </p>
-          <p css={{ marginTop: 12, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>
+          <p css={{ marginTop: 12, fontSize: 14, color: theme.onDark(0.85) }}>
             나무{' '}
-            <b css={{ fontSize: 16, color: '#fff' }}>
+            <b css={{ fontSize: 16, color: theme.color.nightInk }}>
               <CountUp value={CARBON_SAVING.trees} />
             </b>{' '}
             그루 심은 효과
@@ -140,18 +152,58 @@ export default function DashboardLayout() {
 const active = '&[aria-current="page"], &[data-active="true"]'
 
 const s = {
-  root: css({ display: 'flex', minHeight: '100vh' }),
-  aside: css({
+  root: css({ display: 'flex', flexDirection: 'column', minHeight: '100vh', [theme.mq.lg]: { flexDirection: 'row' } }),
+
+  // 모바일 상단 바 (lg 이상에서는 숨김)
+  topbar: css({
     position: 'sticky',
     top: 0,
+    zIndex: 40,
     display: 'flex',
-    height: '100vh',
-    width: 240,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 56,
+    padding: '0 8px 0 16px',
+    background: theme.color.night,
+    color: theme.color.nightInk,
+    '& :focus-visible': { outlineColor: theme.color.lime },
+    [theme.mq.lg]: { display: 'none' },
+  }),
+  topLogo: css({ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700 }),
+  menuBtn: css({
+    display: 'grid',
+    placeItems: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: theme.radius.sm,
+    color: theme.color.nightInk,
+    transition: `background 0.2s ${theme.ease}`,
+    '&:hover': { background: theme.color.nightHover },
+  }),
+  closeBtn: css({ position: 'absolute', top: 12, right: 8, [theme.mq.lg]: { display: 'none' } }),
+  backdrop: css({ position: 'fixed', inset: 0, zIndex: 45, background: theme.scrim(0.5), [theme.mq.lg]: { display: 'none' } }),
+
+  aside: css({
+    // 모바일: 화면 밖에 있다가 data-open 이면 밀려 들어오는 서랍
+    position: 'fixed',
+    inset: '0 auto 0 0',
+    zIndex: 50,
+    display: 'flex',
+    height: '100dvh',
+    width: 'min(280px, 85vw)',
     flexShrink: 0,
     flexDirection: 'column',
     background: theme.color.night,
     padding: '24px 12px',
-    color: '#fff',
+    color: theme.color.nightInk,
+    transform: 'translateX(-100%)',
+    visibility: 'hidden',
+    transition: `transform 0.25s ${theme.ease}, visibility 0s 0.25s`,
+    '&[data-open]': { transform: 'none', visibility: 'visible', transition: `transform 0.25s ${theme.ease}` },
+    '@media (prefers-reduced-motion: reduce)': { transition: 'none', '&[data-open]': { transition: 'none' } },
+    [theme.mq.lg]: { position: 'sticky', top: 0, zIndex: 'auto', height: '100vh', width: 240, transform: 'none', visibility: 'visible', transition: 'none' },
+    // 다크 면에서는 기본 초록 링이 안 보여 라임으로
+    '& :focus-visible': { outlineColor: theme.color.lime },
   }),
   logo: css({ marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12, padding: '0 12px' }),
   nav: css({ display: 'flex', flex: 1, flexDirection: 'column', gap: 2, overflowY: 'auto' }),
@@ -164,11 +216,10 @@ const s = {
     borderRadius: theme.radius.sm,
     padding: '9px 12px',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
+    color: theme.onDark(0.6),
     transition: `background 0.3s ${theme.ease}, color 0.3s ${theme.ease}`,
     '& > .material-symbols-rounded': { transition: `font-variation-settings 0.25s ${theme.ease}, color 0.3s ${theme.ease}, transform 0.3s ${theme.ease}` },
-    '&:hover': { background: 'rgba(255,255,255,0.05)', color: '#fff' },
-    '&:hover > .material-symbols-rounded:first-of-type': { transform: 'translateX(2px)' },
+    '&:hover': { background: theme.onDark(0.05), color: theme.color.nightInk },
     // 활성: 라임 알약 + 어두운 글자
     '&::before': {
       content: '""',
@@ -195,12 +246,12 @@ const s = {
     borderRadius: theme.radius.sm,
     padding: '8px 0 8px 38px',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.55)',
-    transition: `background 0.3s ${theme.ease}, color 0.3s ${theme.ease}, padding 0.3s ${theme.ease}`,
-    '&:hover': { color: '#fff', paddingLeft: 42 },
+    color: theme.onDark(0.55),
+    transition: `background 0.3s ${theme.ease}, color 0.3s ${theme.ease}`,
+    '&:hover': { color: theme.color.nightInk },
     '&[aria-current="page"]': { background: theme.color.lime, fontWeight: 600, color: theme.color.night },
   }),
-  section: css({ margin: '20px 0 4px', padding: '0 12px', color: 'rgba(255,255,255,0.35)' }),
+  section: css({ margin: '20px 0 4px', padding: '0 12px', color: theme.onDark(0.35) }),
 
   saving: css({
     marginTop: 16,
@@ -209,8 +260,8 @@ const s = {
     padding: 16,
     '@media (max-height: 860px)': { display: 'none' },
   }),
-  track: css({ marginTop: 8, height: 3, overflow: 'hidden', borderRadius: theme.radius.pill, background: 'rgba(255,255,255,0.12)' }),
+  track: css({ marginTop: 8, height: 3, overflow: 'hidden', borderRadius: theme.radius.pill, background: theme.onDark(0.12) }),
   bar: css({ height: '100%', borderRadius: theme.radius.pill, background: theme.color.lime }),
 
-  main: css({ minWidth: 0, flex: 1, padding: '24px 28px' }),
+  main: css({ minWidth: 0, flex: 1, padding: '20px 16px 32px', [theme.mq.md]: { padding: '24px 28px' } }),
 }

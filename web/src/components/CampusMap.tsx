@@ -2,7 +2,6 @@ import { css, keyframes } from '@emotion/react'
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { type Building, type Level, levelOf } from '../data/mock'
-import { gsap, reducedMotion, useGSAP } from '../motion'
 import { theme } from '../theme'
 
 const MAP_SRC = '/images/campus-map.webp'
@@ -21,6 +20,9 @@ const anchor = css({ position: 'absolute', transform: 'translate(-50%, -50%)' })
 const s = {
   // 말풍선 크기가 맵 폭(cqw)에 비례하도록 컨테이너로 선언
   root: css({ containerType: 'inline-size', position: 'relative', aspectRatio: '1670 / 850', width: '100%', userSelect: 'none' }),
+  // 좁은 화면: 말풍선이 겹치지 않게 지도 폭을 지키고 옆으로 밀어 보게 한다
+  frame: css({ '@media (max-width: 767px)': { overflowX: 'auto', overscrollBehaviorX: 'contain' } }),
+  rootWide: css({ '@media (max-width: 767px)': { minWidth: 640 } }),
   img: css(fill, { objectFit: 'contain' }),
   lines: css(fill, { pointerEvents: 'none' }),
   dot: css(anchor, { width: 6, height: 6, borderRadius: '50%', background: c.ink, boxShadow: `0 0 0 2px ${c.surface}` }),
@@ -28,7 +30,7 @@ const s = {
     display: 'block',
     borderRadius: theme.radius.sm,
     border: '1.5px solid currentColor',
-    background: 'rgba(255, 255, 255, 0.95)',
+    background: theme.onDark(0.95),
     padding: '0.3cqw 0.6cqw',
     textAlign: 'center',
     lineHeight: 1.25,
@@ -68,12 +70,12 @@ const s = {
     left: 8,
     borderRadius: theme.radius.md,
     border: `1px solid ${c.line}`,
-    background: 'rgba(255, 255, 255, 0.9)',
+    background: theme.onDark(0.9),
     padding: '10px 12px',
     fontSize: 12,
     color: c.sub,
   }),
-  legendUnit: css({ marginBottom: 6, fontFamily: theme.font.mono, fontSize: 11, letterSpacing: '0.08em', color: c.mute }),
+  legendUnit: css({ marginBottom: 6, fontSize: 11, color: c.mute }),
   legendBody: css({ display: 'flex', gap: 8 }),
   legendBar: css({ width: 6, height: 64, borderRadius: theme.radius.pill, background: `linear-gradient(${c.danger}, ${c.warn}, ${c.good})` }),
   legendLabels: css({ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }),
@@ -98,21 +100,13 @@ interface Props {
 export default function CampusMap({ callouts = [], pins = [], linkTo, legend, className }: Props) {
   const root = useRef<HTMLDivElement>(null)
 
-  // 말풍선·핀 팝인
-  useGSAP(
-    () => {
-      if (reducedMotion()) return
-      gsap.from('[data-pop]', { scale: 0.5, autoAlpha: 0, duration: 0.5, ease: 'back.out(1.7)', stagger: 0.05, delay: 0.2 })
-    },
-    { scope: root },
-  )
-
   return (
-    <div ref={root} css={s.root} className={className}>
+    <div css={s.frame} className={className}>
+    <div ref={root} css={[s.root, callouts.length > 0 && s.rootWide]}>
       <img src={MAP_SRC} alt="국립한밭대학교 3D 캠퍼스 맵" css={s.img} draggable={false} />
 
       {callouts.length > 0 && (
-        <svg css={s.lines} viewBox="0 0 100 100" preserveAspectRatio="none">
+        <svg css={s.lines} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           {callouts.map((b) => (
             <line key={b.id} x1={b.x} y1={b.y} x2={b.labelX} y2={b.labelY} stroke={c.ink} strokeOpacity={0.55} strokeWidth={1} vectorEffect="non-scaling-stroke" />
           ))}
@@ -169,6 +163,7 @@ export default function CampusMap({ callouts = [], pins = [], linkTo, legend, cl
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }

@@ -1,5 +1,4 @@
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, LabelList, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { reducedMotion } from '../motion'
 import { theme } from '../theme'
 
 const c = theme.color
@@ -13,7 +12,8 @@ export const CHART = {
 }
 
 /** 차트가 그려지는 진입 애니메이션 (모션 최소화 설정이면 끔) */
-const anim = { isAnimationActive: !reducedMotion(), animationDuration: 900, animationEasing: 'ease-out' as const }
+/** 앱 화면은 로드 때 움직이지 않는다 (design.md Motion) */
+const anim = { isAnimationActive: false }
 
 const grid = { vertical: false, stroke: CHART.grid, strokeDasharray: '2 4' }
 const axis = { tick: CHART.axis, axisLine: false, tickLine: false }
@@ -22,7 +22,7 @@ const cursorLine = { stroke: c.line }
 
 const tooltip = {
   contentStyle: { borderRadius: theme.radius.md, border: `1px solid ${c.line}`, background: c.surface, boxShadow: 'none', padding: '8px 12px', fontSize: 12 },
-  labelStyle: { marginBottom: 2, fontFamily: theme.font.mono, fontSize: 11, letterSpacing: '0.08em', color: c.mute },
+  labelStyle: { marginBottom: 2, fontSize: 12, color: c.sub },
   itemStyle: { padding: 0, color: c.ink, fontVariantNumeric: 'tabular-nums' },
 }
 

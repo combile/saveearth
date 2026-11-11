@@ -1,3 +1,5 @@
+/* Hallmark · v2.0.0 · redesign: full · shape: app screen · theme: brand (theme.ts) · scope: app, power/building·hourly·seasonal */
+/* critique: 세 탭은 같은 뼈대를 쓴다. 1행은 대표 차트와 그 차트를 요약하는 숫자, 2행은 표나 비교. 필터 바는 카드와 같은 무테 흰 면 */
 import { css } from '@emotion/react'
 import type { ReactNode } from 'react'
 import { PageHeader, UnderlineTabs } from '../../components/ui'
@@ -16,7 +18,7 @@ const { color, radius, mq } = theme
 /** 전력 소비 화면(power/*, detail/*) 공용 스타일 */
 export const ps = {
   /** 상단 필터 바 */
-  filterBar: css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 24px', padding: '14px 24px', border: `1px solid ${color.line}`, borderRadius: radius.lg, background: color.surface }),
+  filterBar: css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 24px', padding: '14px 20px', borderRadius: radius.lg, background: color.surface }),
   pushRight: css({ marginLeft: 'auto' }),
   /** 라벨이 위에 붙는 필터 묶음 (상세 화면) */
   fields: css({ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: 24, marginBottom: 20 }),
@@ -29,7 +31,7 @@ export const ps = {
   grow: css({ flex: 1 }),
   chart: css({ padding: '0 16px 16px' }),
   /** 헤어라인으로 나뉜 목록 박스 */
-  list: css({ margin: '0 20px', border: `1px solid ${color.line}`, borderRadius: radius.md, overflow: 'hidden', '& > * + *': { borderTop: `1px solid ${color.lineSoft}` } }),
+  list: css({ margin: '0 20px', borderTop: `1px solid ${color.line}`, '& > * + *': { borderTop: `1px solid ${color.lineSoft}` } }),
   cardFoot: css({ marginTop: 'auto', padding: 20 }),
   full: css({ width: '100%' }),
   label: css(eyebrow, { color: color.sub }),
@@ -37,7 +39,7 @@ export const ps = {
   num: css(bigNumber, { fontSize: 28 }),
   unit: css({ marginLeft: 4, fontSize: 14, fontWeight: 400, letterSpacing: 0, color: color.sub }),
   /** 카드 안의 보더 타일 (예측값, 시간대 요약) */
-  tile: css({ padding: '16px 20px', border: `1px solid ${color.line}`, borderRadius: radius.md, transition: `border-color 0.3s ${theme.ease}`, '&:hover': { borderColor: color.brand300 } }),
+  tile: css({ padding: '16px 0', borderTop: `1px solid ${color.line}` }),
   /** 아이콘 + 문구 한 줄 인사이트 카드 */
   insight: css({ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 20, padding: '16px 20px' }),
   insightIcon: css({ flexShrink: 0, marginTop: 1, color: color.good, '& .material-symbols-rounded': { fontSize: '18px !important' } }),
