@@ -14,6 +14,7 @@ const POWER_CHILDREN = [
 ]
 
 const NAV = [
+  { to: '/live', label: '실시간 전력 모니터', icon: 'sensors' },
   { to: '/forecast', label: '실시간 전력 예측', icon: 'query_stats' },
   { to: '/classroom', label: '강의실 추천', icon: 'apartment' },
   { to: '/carbon', label: '탄소 절감 현황', icon: 'eco' },

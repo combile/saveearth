@@ -13,6 +13,7 @@ import HourlyDetailPage from './pages/detail/HourlyDetailPage'
 import SeasonalDetailPage from './pages/detail/SeasonalDetailPage'
 import ForecastPage from './pages/ForecastPage'
 import InefficientPage from './pages/InefficientPage'
+import LivePage from './pages/LivePage'
 import LoginPage from './pages/LoginPage'
 import PowerBuildingPage from './pages/power/PowerBuildingPage'
 import PowerHourlyPage from './pages/power/PowerHourlyPage'
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="power/hourly/detail" element={<HourlyDetailPage />} />
           <Route path="power/seasonal" element={<PowerSeasonalPage />} />
           <Route path="power/seasonal/detail" element={<SeasonalDetailPage />} />
+          <Route path="live" element={<LivePage />} />
           <Route path="forecast" element={<ForecastPage />} />
           <Route path="forecast/:id" element={<ForecastDetailPage />} />
           <Route path="classroom" element={<ClassroomPage />} />

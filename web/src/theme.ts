@@ -13,6 +13,10 @@ export const theme = {
     /** 사이드바 */
     night: '#101312',
     nightSoft: '#1b1f1d',
+    /** 다크 패널 위 글자·선 */
+    nightInk: '#ffffff',
+    nightSub: 'rgba(255,255,255,0.6)',
+    nightLine: 'rgba(255,255,255,0.1)',
     brand900: '#02302c',
     brand800: '#0a4136',
     brand700: '#0d6b43',
