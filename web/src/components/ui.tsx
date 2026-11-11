@@ -33,7 +33,7 @@ export function MoreLink({ to = '#', label = '더보기', down }: { to?: string;
   return (
     <Link to={to} css={s.more} data-down={down || undefined}>
       {label}
-      <Icon name={down ? 'expand_more' : 'arrow_forward'} size={14} />
+      {down && <Icon name="expand_more" size={14} />}
     </Link>
   )
 }
@@ -43,7 +43,7 @@ export function Delta({ value, compare }: { value: number; compare?: string }) {
   return (
     <span css={s.delta}>
       {compare && <span css={{ color: c.sub }}>{compare}</span>}
-      <span css={[s.deltaValue, { color: down ? c.good : c.danger }]}>
+      <span css={[s.deltaValue, { color: down ? c.good : c.dangerText }]}>
         <Icon name={down ? 'arrow_drop_down' : 'arrow_drop_up'} size={18} />
         {Math.abs(value)}%
       </span>
@@ -235,9 +235,9 @@ export function Badge({ tone, children }: { tone: keyof typeof BADGE_TONES; chil
   )
 }
 
-export function Button({ variant = 'primary', className, children, onClick }: { variant?: 'primary' | 'outline'; className?: string; children: ReactNode; onClick?: () => void }) {
+export function Button({ variant = 'primary', type = 'button', className, children, onClick }: { variant?: 'primary' | 'outline'; type?: 'button' | 'submit'; className?: string; children: ReactNode; onClick?: () => void }) {
   return (
-    <button onClick={onClick} css={[s.button, variant === 'primary' ? s.buttonPrimary : s.buttonOutline]} className={className}>
+    <button type={type} onClick={onClick} css={[s.button, variant === 'primary' ? s.buttonPrimary : s.buttonOutline]} className={className}>
       {children}
     </button>
   )
@@ -353,7 +353,16 @@ export function StatRows({ rows }: { rows: { label: string; value: ReactNode }[]
 
 const s = {
   // 연회색 배경 위의 테두리 없는 흰 카드
-  card: css({ display: 'flex', flexDirection: 'column', borderRadius: r.lg, border: '1px solid transparent', background: c.surface }),
+  card: css({
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    borderRadius: r.lg,
+    border: '1px solid transparent',
+    background: c.surface,
+    // 좁은 화면: 카드 안 표는 카드를 밀어내지 않고 옆으로 스크롤
+    '@media (max-width: 767px)': { '& table': { position: 'relative', display: 'block', overflowX: 'auto' } },
+  }),
   cardHeader: css({ display: 'flex', alignItems: 'center', gap: 6, padding: '18px 20px 12px' }),
   cardTitle: css({ fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' }),
   cardSub: css({ fontSize: 12, color: c.mute }),

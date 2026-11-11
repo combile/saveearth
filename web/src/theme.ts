@@ -38,6 +38,8 @@ export const theme = {
     seriesOrange: '#f97316',
     indigo: '#5b63d3',
     danger: '#e5484d',
+    /** 흰 바탕 위 빨간 글자 (4.5:1 이상) */
+    dangerText: '#c4262c',
     dangerSoft: '#fdecec',
     warn: '#e0a100',
     warnSoft: '#fdf5dc',
@@ -90,6 +92,10 @@ export const globalStyles = css`
   }
   html {
     -webkit-text-size-adjust: 100%;
+  }
+  html,
+  body {
+    overflow-x: clip;
   }
   body {
     font-family: ${theme.font.sans};

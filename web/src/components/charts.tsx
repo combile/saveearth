@@ -1,5 +1,4 @@
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, LabelList, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { reducedMotion } from '../motion'
 import { theme } from '../theme'
 
 const c = theme.color
@@ -13,7 +12,8 @@ export const CHART = {
 }
 
 /** 차트가 그려지는 진입 애니메이션 (모션 최소화 설정이면 끔) */
-const anim = { isAnimationActive: !reducedMotion(), animationDuration: 900, animationEasing: 'ease-out' as const }
+/** 앱 화면은 로드 때 움직이지 않는다 (design.md Motion) */
+const anim = { isAnimationActive: false }
 
 const grid = { vertical: false, stroke: CHART.grid, strokeDasharray: '2 4' }
 const axis = { tick: CHART.axis, axisLine: false, tickLine: false }

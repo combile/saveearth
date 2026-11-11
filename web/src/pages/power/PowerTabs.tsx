@@ -1,3 +1,5 @@
+/* Hallmark · v2.0.0 · redesign: full · shape: app screen · theme: brand (theme.ts) · scope: app, power/building·hourly·seasonal */
+/* critique: 세 탭은 같은 뼈대를 쓴다. 1행은 대표 차트와 그 차트를 요약하는 숫자, 2행은 표나 비교. 필터 바는 카드와 같은 무테 흰 면 */
 import { css } from '@emotion/react'
 import type { ReactNode } from 'react'
 import { PageHeader, UnderlineTabs } from '../../components/ui'
@@ -16,7 +18,7 @@ const { color, radius, mq } = theme
 /** 전력 소비 화면(power/*, detail/*) 공용 스타일 */
 export const ps = {
   /** 상단 필터 바 */
-  filterBar: css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 24px', padding: '14px 24px', border: `1px solid ${color.line}`, borderRadius: radius.lg, background: color.surface }),
+  filterBar: css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px 24px', padding: '14px 20px', borderRadius: radius.lg, background: color.surface }),
   pushRight: css({ marginLeft: 'auto' }),
   /** 라벨이 위에 붙는 필터 묶음 (상세 화면) */
   fields: css({ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: 24, marginBottom: 20 }),
