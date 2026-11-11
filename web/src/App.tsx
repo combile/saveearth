@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, RequireAdmin } from './auth'
-import IntroLoader from './components/IntroLoader'
 import DashboardLayout from './layouts/DashboardLayout'
 import DataManagementPage from './pages/admin/DataManagementPage'
 import CarbonPage from './pages/CarbonPage'
@@ -26,7 +25,6 @@ const adminOnly = (page: ReactNode) => <RequireAdmin>{page}</RequireAdmin>
 export default function App() {
   return (
     <AuthProvider>
-      <IntroLoader />
       <Routes>
         <Route path="admin/login" element={<LoginPage />} />
         <Route path="login" element={<Navigate to="/admin/login" replace />} />

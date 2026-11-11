@@ -223,7 +223,7 @@ export function SelectBox({ label, value, options, onChange, icon, className }: 
   )
 }
 
-const BADGE_TONES = { danger: c.danger, warn: c.warn, good: c.good, blue: '#5b63d3', green: c.brand700 }
+const BADGE_TONES = { danger: c.danger, warn: c.warn, good: c.good, blue: c.indigo, green: c.brand700 }
 
 /** 색 점 + 회색 알약. 색은 점에만 써서 표·목록 안에서 튀지 않게 한다 */
 export function Badge({ tone, children }: { tone: keyof typeof BADGE_TONES; children: ReactNode }) {
@@ -288,7 +288,6 @@ function ProfileMenu() {
     () => {
       if (!open || reducedMotion()) return
       gsap.from(menu.current, { autoAlpha: 0, y: -8, scale: 0.97, transformOrigin: 'top right', duration: 0.22, ease: 'power2.out' })
-      gsap.from(menu.current!.children, { autoAlpha: 0, y: -4, duration: 0.2, stagger: 0.04, delay: 0.05 })
     },
     { dependencies: [open] },
   )
@@ -444,6 +443,7 @@ const s = {
     // 카드 안팎 어디서든 보이도록 흰 바탕 + 헤어라인
     border: `1px solid ${c.line}`,
     background: c.surface,
+    minHeight: theme.control,
     padding: '7px 34px 7px 12px',
     color: c.ink,
     outline: 'none',
@@ -465,7 +465,7 @@ const s = {
     border: `1px solid ${c.line}`,
     background: c.surface,
     padding: 4,
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+    boxShadow: theme.shadow.pop,
   }),
   option: css({
     display: 'flex',
@@ -492,14 +492,15 @@ const s = {
     justifyContent: 'center',
     gap: 6,
     borderRadius: r.sm,
-    padding: '7px 14px',
+    minHeight: theme.control,
+    padding: '0 14px',
     fontSize: 13,
     fontWeight: 600,
-    transition: `transform 0.3s ${ease}, background 0.25s ${ease}, border-color 0.25s ${ease}, color 0.25s ${ease}`,
-    '&:hover': { transform: 'translateY(-1px)' },
-    '&:active': { transform: 'scale(0.97)' },
+    transition: `transform 0.15s ${ease}, background 0.2s ${ease}, color 0.2s ${ease}`,
+    '&:active': { transform: 'scale(0.98)' },
+    '&:disabled': { opacity: 0.45, cursor: 'not-allowed', transform: 'none' },
   }),
-  buttonPrimary: css({ background: c.lime, color: c.night, '&:hover': { background: '#b5e335' } }),
+  buttonPrimary: css({ background: c.lime, color: c.night, '&:hover': { background: c.limeHover } }),
   buttonOutline: css({ background: c.lineSoft, color: c.ink, '&:hover': { background: c.line } }),
 
   header: css({ marginBottom: 20, display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 16 }),

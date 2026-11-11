@@ -4,7 +4,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { Icon } from '../components/Icon'
 import { CARBON_SAVING } from '../data/mock'
-import { CountUp, EASE, gsap, reducedMotion, useGSAP, useReveal } from '../motion'
+import { CountUp, useReveal } from '../motion'
 import { bigNumber, eyebrow, theme } from '../theme'
 
 const POWER_CHILDREN = [
@@ -49,18 +49,6 @@ export default function DashboardLayout() {
   const powerPanel = useRef<HTMLDivElement>(null)
   const bar = useRef<HTMLDivElement>(null)
 
-  // 아코디언: 접혀도 DOM 에 남기고 height/opacity 만 애니메이션 (접힌 동안은 inert)
-  useGSAP(
-    () => {
-      gsap.to(powerPanel.current, { height: powerOpen ? 'auto' : 0, autoAlpha: powerOpen ? 1 : 0, duration: reducedMotion() ? 0 : 0.4, ease: EASE })
-    },
-    { dependencies: [powerOpen] },
-  )
-
-  useGSAP(() => {
-    if (reducedMotion()) return
-    gsap.from(bar.current, { width: 0, duration: 1.2, ease: EASE, delay: 0.3 })
-  })
 
   return (
     <div css={s.root}>
@@ -69,20 +57,20 @@ export default function DashboardLayout() {
           <Icon name="potted_plant" size={40} css={{ color: theme.color.lime }} />
           <div css={{ lineHeight: 1.25 }}>
             <p css={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>한밭대학교</p>
-            <p css={{ fontSize: 14, color: 'rgba(255,255,255,0.75)' }}>탄소중립 캠퍼스</p>
+            <p css={{ fontSize: 14, color: theme.onDark(0.75) }}>탄소중립 캠퍼스</p>
           </div>
         </Link>
 
         <nav css={s.nav}>
           <NavItem to="/" end label="대시보드" icon="home" />
 
-          <div css={[s.group, inPower && { background: 'rgba(255,255,255,0.05)' }]}>
+          <div css={[s.group, inPower && { background: theme.onDark(0.05) }]}>
             <button onClick={() => setPowerOpen((o) => !o)} aria-expanded={powerOpen} data-active={inPower && !powerOpen} css={[s.item, { width: '100%' }]}>
               <Icon name="bar_chart" fill={inPower} />
               <span css={{ flex: 1, textAlign: 'left' }}>전력 소비 시각화</span>
               <Icon name="expand_more" size={18} css={[s.chevron, !powerOpen && { transform: 'rotate(-90deg)' }]} />
             </button>
-            <div ref={powerPanel} inert={!powerOpen} css={{ overflow: 'hidden' }}>
+            <div ref={powerPanel} hidden={!powerOpen}>
               <div css={s.children}>
                 {POWER_CHILDREN.map((c) => (
                   <NavLink key={c.to} to={c.to} css={s.child}>
@@ -108,17 +96,17 @@ export default function DashboardLayout() {
         </nav>
 
         <div css={s.saving}>
-          <p css={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(255,255,255,0.9)' }}>
+          <p css={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: theme.onDark(0.9) }}>
             <Icon name="eco" fill css={{ color: theme.color.lime }} />
             오늘의 탄소 절감 기여도
           </p>
           <p css={[bigNumber, { marginTop: 12, textAlign: 'center', fontSize: 34 }]}>
             <CountUp value={CARBON_SAVING.today} />
-            <span css={{ marginLeft: 4, fontSize: 14, fontWeight: 400, letterSpacing: 0, color: 'rgba(255,255,255,0.8)' }}>kgCO₂</span>
+            <span css={{ marginLeft: 4, fontSize: 14, fontWeight: 400, letterSpacing: 0, color: theme.onDark(0.8) }}>kgCO₂</span>
           </p>
-          <p css={{ marginTop: 12, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>
+          <p css={{ marginTop: 12, fontSize: 14, color: theme.onDark(0.85) }}>
             나무{' '}
-            <b css={{ fontSize: 16, color: '#fff' }}>
+            <b css={{ fontSize: 16, color: theme.color.nightInk }}>
               <CountUp value={CARBON_SAVING.trees} />
             </b>{' '}
             그루 심은 효과
@@ -152,7 +140,9 @@ const s = {
     flexDirection: 'column',
     background: theme.color.night,
     padding: '24px 12px',
-    color: '#fff',
+    color: theme.color.nightInk,
+    // 다크 면에서는 기본 초록 링이 안 보여 라임으로
+    '& :focus-visible': { outlineColor: theme.color.lime },
   }),
   logo: css({ marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12, padding: '0 12px' }),
   nav: css({ display: 'flex', flex: 1, flexDirection: 'column', gap: 2, overflowY: 'auto' }),
@@ -165,11 +155,10 @@ const s = {
     borderRadius: theme.radius.sm,
     padding: '9px 12px',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
+    color: theme.onDark(0.6),
     transition: `background 0.3s ${theme.ease}, color 0.3s ${theme.ease}`,
     '& > .material-symbols-rounded': { transition: `font-variation-settings 0.25s ${theme.ease}, color 0.3s ${theme.ease}, transform 0.3s ${theme.ease}` },
-    '&:hover': { background: 'rgba(255,255,255,0.05)', color: '#fff' },
-    '&:hover > .material-symbols-rounded:first-of-type': { transform: 'translateX(2px)' },
+    '&:hover': { background: theme.onDark(0.05), color: theme.color.nightInk },
     // 활성: 라임 알약 + 어두운 글자
     '&::before': {
       content: '""',
@@ -196,12 +185,12 @@ const s = {
     borderRadius: theme.radius.sm,
     padding: '8px 0 8px 38px',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.55)',
-    transition: `background 0.3s ${theme.ease}, color 0.3s ${theme.ease}, padding 0.3s ${theme.ease}`,
-    '&:hover': { color: '#fff', paddingLeft: 42 },
+    color: theme.onDark(0.55),
+    transition: `background 0.3s ${theme.ease}, color 0.3s ${theme.ease}`,
+    '&:hover': { color: theme.color.nightInk },
     '&[aria-current="page"]': { background: theme.color.lime, fontWeight: 600, color: theme.color.night },
   }),
-  section: css({ margin: '20px 0 4px', padding: '0 12px', color: 'rgba(255,255,255,0.35)' }),
+  section: css({ margin: '20px 0 4px', padding: '0 12px', color: theme.onDark(0.35) }),
 
   saving: css({
     marginTop: 16,
@@ -210,7 +199,7 @@ const s = {
     padding: 16,
     '@media (max-height: 860px)': { display: 'none' },
   }),
-  track: css({ marginTop: 8, height: 3, overflow: 'hidden', borderRadius: theme.radius.pill, background: 'rgba(255,255,255,0.12)' }),
+  track: css({ marginTop: 8, height: 3, overflow: 'hidden', borderRadius: theme.radius.pill, background: theme.onDark(0.12) }),
   bar: css({ height: '100%', borderRadius: theme.radius.pill, background: theme.color.lime }),
 
   main: css({ minWidth: 0, flex: 1, padding: '24px 28px' }),

@@ -6,7 +6,6 @@ import { CHART, Sparkline } from '../../components/charts'
 import { Icon } from '../../components/Icon'
 import { Button, Card, CardHeader, Delta, KpiCard, MoreLink, Segmented, SelectBox } from '../../components/ui'
 import { BUILDINGS } from '../../data/mock'
-import { EASE, gsap, reducedMotion, useGSAP } from '../../motion'
 import { eyebrow, theme } from '../../theme'
 import PowerTabs, { ps } from './PowerTabs'
 
@@ -28,7 +27,7 @@ const s = {
   rank: css(eyebrow, { width: 16, fontSize: 12, color: color.sub }),
   code: css({ marginRight: 8, fontWeight: 600 }),
   good: css({ color: color.good }),
-  tableWrap: css({ margin: '0 20px', overflowX: 'auto', border: `1px solid ${color.line}`, borderRadius: radius.md }),
+  tableWrap: css({ margin: '0 20px', overflowX: 'auto' }),
   table: css({
     fontSize: 14,
     fontVariantNumeric: 'tabular-nums',
@@ -67,15 +66,6 @@ export default function PowerBuildingPage() {
   const [unit, setUnit] = useState<'kWh' | 'kW'>('kWh')
   const key = unit === 'kWh' ? 'monthKwh' : 'kw'
   const table = useRef<HTMLTableElement>(null)
-
-  // 표의 사용량 막대를 화면에 들어올 때 0 → 값으로 채운다
-  useGSAP(
-    () => {
-      if (reducedMotion()) return
-      gsap.from('[data-bar]', { scaleX: 0, duration: 0.9, ease: EASE, stagger: 0.06, scrollTrigger: { trigger: table.current, start: 'top 90%', once: true } })
-    },
-    { scope: table },
-  )
 
   return (
     <PowerTabs active="건물별">
@@ -146,7 +136,7 @@ export default function PowerBuildingPage() {
           </ol>
           <div css={ps.cardFoot}>
             <Button variant="outline" css={ps.full}>
-              전체 건물 보기 →
+              전체 건물 보기
             </Button>
           </div>
         </Card>
@@ -217,7 +207,7 @@ export default function PowerBuildingPage() {
           </ul>
           <div css={ps.cardFoot}>
             <Button variant="outline" css={ps.full}>
-              인사이트 더보기 →
+              인사이트 더보기
             </Button>
           </div>
         </Card>

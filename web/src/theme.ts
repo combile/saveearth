@@ -1,4 +1,10 @@
+/* Hallmark · v2.0.0 · redesign: restyle · shape: app screen · theme: brand (night + lime, Pretendard; 프로젝트가 고른 색이라 유지) · scope: app, 17 screens */
+/* critique: 브랜드는 이미 절제돼 있었다. 하드코딩 색을 토큰으로 모으고, 로드 때 장식 모션을 걷고, 컨트롤 높이를 36px로 맞춘다 */
 import { css } from '@emotion/react'
+
+/** 다크 면 위의 흰색 / 사진 위 덮개. 알파만 바꿔 쓰는 토큰 */
+const onDark = (a: number) => `rgba(255, 255, 255, ${a})`
+const scrim = (a: number) => `rgba(8, 12, 10, ${a})`
 
 /** 디자인 토큰. 연회색 배경 + 테두리 없는 흰 카드, 거의 검정인 사이드바, 라임 포인트 */
 export const theme = {
@@ -15,8 +21,9 @@ export const theme = {
     nightSoft: '#1b1f1d',
     /** 다크 패널 위 글자·선 */
     nightInk: '#ffffff',
-    nightSub: 'rgba(255,255,255,0.6)',
-    nightLine: 'rgba(255,255,255,0.1)',
+    nightSub: onDark(0.6),
+    nightLine: onDark(0.1),
+    nightHover: onDark(0.05),
     brand900: '#02302c',
     brand800: '#0a4136',
     brand700: '#0d6b43',
@@ -25,6 +32,11 @@ export const theme = {
     brand100: '#e7f3ec',
     olive: '#5c6e21',
     lime: '#c5f04a',
+    limeHover: '#b5e335',
+    /** 차트 비교 계열 (예측 1시간·3시간, 배지 파랑) */
+    seriesBlue: '#5b8def',
+    seriesOrange: '#f97316',
+    indigo: '#5b63d3',
     danger: '#e5484d',
     dangerSoft: '#fdecec',
     warn: '#e0a100',
@@ -32,6 +44,14 @@ export const theme = {
     good: '#00a862',
     goodSoft: '#e3f6ec',
   },
+  /** 계절 차트 4색 (봄·여름·가을·겨울) */
+  season: ['#5fae86', '#2f8a5b', '#8cc7a6', '#b9dcc8'],
+  onDark,
+  scrim,
+  /** 떠 있는 목록·메뉴에만 쓰는 그림자 */
+  shadow: { pop: `0 8px 24px ${scrim(0.08)}` },
+  /** 컨트롤 높이 (앱 화면 32~40px 범위) */
+  control: 36,
   radius: { sm: 6, md: 10, lg: 14, pill: 999 },
   font: {
     sans: "'Pretendard Variable', 'Pretendard', system-ui, sans-serif",

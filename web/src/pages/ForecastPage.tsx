@@ -8,8 +8,8 @@ import { eyebrow, theme } from '../theme'
 
 const SERIES = [
   { key: 'now', name: '현재', color: CHART.dark },
-  { key: 'h1', name: '1시간 후', color: '#5b8def' },
-  { key: 'h3', name: '3시간 후', color: '#f97316' },
+  { key: 'h1', name: '1시간 후', color: theme.color.seriesBlue },
+  { key: 'h3', name: '3시간 후', color: theme.color.seriesOrange },
 ]
 
 const s = {

@@ -6,7 +6,7 @@ import { CHART, SimpleBars } from '../components/charts'
 import { Icon } from '../components/Icon'
 import { Card, CardHeader, Delta, KpiCard, PageHeader } from '../components/ui'
 import { CAMPUS_CARBON } from '../data/mock'
-import { CountUp, EASE, gsap, reducedMotion, useGSAP } from '../motion'
+import { CountUp } from '../motion'
 import { bigNumber, eyebrow, theme } from '../theme'
 
 const COLORS = [CHART.dark, CHART.mid, CHART.light]
@@ -49,16 +49,16 @@ const s = {
     padding: 24,
     borderRadius: theme.radius.lg,
     background: `linear-gradient(135deg, ${theme.color.brand900}, ${theme.color.brand800})`,
-    color: '#fff',
+    color: theme.color.nightInk,
   }),
-  ctaIcon: css({ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: theme.radius.pill, background: 'rgba(255,255,255,0.1)', color: theme.color.lime }),
+  ctaIcon: css({ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: theme.radius.pill, background: theme.onDark(0.1), color: theme.color.lime }),
   ctaTitle: css({ marginTop: 16, fontSize: 18, fontWeight: 700 }),
-  ctaText: css({ marginTop: 6, fontSize: 14, color: 'rgba(255,255,255,0.75)' }),
+  ctaText: css({ marginTop: 6, fontSize: 14, color: theme.onDark(0.75) }),
   ctaLink: css({
     marginTop: 24,
     padding: '10px 0',
     borderRadius: theme.radius.sm,
-    background: '#fff',
+    background: theme.color.surface,
     textAlign: 'center',
     fontSize: 14,
     fontWeight: 600,
@@ -74,15 +74,7 @@ export default function CarbonPage() {
   const prev = c.monthly[c.monthly.length - 2].saved
   const maxSaved = c.buildingRank[0].saved
 
-  // 순위 막대: 화면에 들어오면 0 → 값으로 채움
   const rankRef = useRef<HTMLUListElement>(null)
-  useGSAP(
-    () => {
-      if (reducedMotion()) return
-      gsap.from('[data-bar]', { scaleX: 0, duration: 1, ease: EASE, stagger: 0.08, scrollTrigger: { trigger: rankRef.current, start: 'top 90%', once: true } })
-    },
-    { scope: rankRef },
-  )
 
   return (
     <>

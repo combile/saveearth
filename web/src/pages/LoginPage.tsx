@@ -8,7 +8,7 @@ import { CountUp, EASE, gsap, reducedMotion, useGSAP } from '../motion'
 import { theme } from '../theme'
 
 const c = theme.color
-const onDark = (a: number) => `rgba(255, 255, 255, ${a})`
+const onDark = theme.onDark
 
 // 사진: 한밭대학교 유성캠퍼스 (대외협력홍보팀, CC BY-SA 4.0, Wikimedia Commons)
 const BG_SRC = '/images/hanbat-campus.jpg'
@@ -21,15 +21,15 @@ const s = {
     gridTemplateRows: 'auto 1fr auto',
     minHeight: '100vh',
     overflow: 'hidden',
-    color: '#fff',
+    color: c.nightInk,
     background: c.night,
   }),
   bg: css({ position: 'absolute', inset: 0, width: '100%', height: '100%', maxWidth: 'none', objectFit: 'cover', objectPosition: 'center 70%' }),
-  shade: css({ position: 'absolute', inset: 0, background: 'radial-gradient(45% 40% at 50% 52%, rgba(8, 12, 10, 0.45), transparent), linear-gradient(to bottom, rgba(8, 12, 10, 0.55), rgba(8, 12, 10, 0.72))' }),
+  shade: css({ position: 'absolute', inset: 0, background: `radial-gradient(45% 40% at 50% 52%, ${theme.scrim(0.45)}, transparent), linear-gradient(to bottom, ${theme.scrim(0.55)}, ${theme.scrim(0.72)})` }),
   bar: css({ position: 'relative', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '24px 20px', [theme.mq.md]: { padding: '28px 40px' } }),
 
   brand: css({ display: 'flex', alignItems: 'center', gap: 10, lineHeight: 1.25, color: c.lime }),
-  brandName: css({ fontSize: 17, fontWeight: 700, color: '#fff' }),
+  brandName: css({ fontSize: 17, fontWeight: 700, color: c.nightInk }),
   brandSub: css({ fontSize: 12, color: onDark(0.7) }),
   back: css({
     display: 'inline-flex',
@@ -39,7 +39,7 @@ const s = {
     color: onDark(0.8),
     transition: `color 0.25s ${theme.ease}`,
     '& > span': { transition: `transform 0.25s ${theme.ease}` },
-    '&:hover': { color: '#fff' },
+    '&:hover': { color: c.nightInk },
     '&:hover > span': { transform: 'translateX(-3px)' },
   }),
 
@@ -61,8 +61,8 @@ const s = {
     outline: 'none',
     transition: `background 0.25s ${theme.ease}, box-shadow 0.25s ${theme.ease}`,
     '&::placeholder': { color: c.sub },
-    '&:hover': { background: '#fff' },
-    '&:focus': { background: '#fff', boxShadow: `0 0 0 3px ${onDark(0.35)}` },
+    '&:hover': { background: c.nightInk },
+    '&:focus': { background: c.nightInk, boxShadow: `0 0 0 3px ${onDark(0.35)}` },
   }),
   // 테두리만 있는 버튼, hover 시 라임으로 채워진다
   submit: css({
@@ -78,12 +78,12 @@ const s = {
     border: `1.5px solid ${onDark(0.9)}`,
     fontSize: 14,
     fontWeight: 600,
-    color: '#fff',
+    color: c.nightInk,
     transition: `background 0.3s ${theme.ease}, border-color 0.3s ${theme.ease}, color 0.3s ${theme.ease}`,
     '& > span': { transition: `transform 0.25s ${theme.ease}` },
     '&:hover': { background: c.lime, borderColor: c.lime, color: c.night },
     '&:hover > span': { transform: 'translateX(4px)' },
-    '&:focus-visible': { outlineColor: '#fff' },
+    '&:focus-visible': { outlineColor: c.nightInk },
   }),
   demo: css({ marginTop: 18, fontSize: 12, color: onDark(0.65), '& > b': { color: onDark(0.9) } }),
 

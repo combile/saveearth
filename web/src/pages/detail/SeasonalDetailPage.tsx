@@ -7,7 +7,7 @@ import { BUILDINGS, SEASONAL } from '../../data/mock'
 import { theme } from '../../theme'
 import { ps } from '../power/PowerTabs'
 
-const COLORS = ['#5fae86', '#2f8a5b', '#8cc7a6', '#b9dcc8']
+const COLORS = theme.season
 
 const { color, radius, mq } = theme
 

@@ -22,7 +22,7 @@ const cursorLine = { stroke: c.line }
 
 const tooltip = {
   contentStyle: { borderRadius: theme.radius.md, border: `1px solid ${c.line}`, background: c.surface, boxShadow: 'none', padding: '8px 12px', fontSize: 12 },
-  labelStyle: { marginBottom: 2, fontFamily: theme.font.mono, fontSize: 11, letterSpacing: '0.08em', color: c.mute },
+  labelStyle: { marginBottom: 2, fontSize: 12, color: c.sub },
   itemStyle: { padding: 0, color: c.ink, fontVariantNumeric: 'tabular-nums' },
 }
 

@@ -29,7 +29,7 @@ export const ps = {
   grow: css({ flex: 1 }),
   chart: css({ padding: '0 16px 16px' }),
   /** 헤어라인으로 나뉜 목록 박스 */
-  list: css({ margin: '0 20px', border: `1px solid ${color.line}`, borderRadius: radius.md, overflow: 'hidden', '& > * + *': { borderTop: `1px solid ${color.lineSoft}` } }),
+  list: css({ margin: '0 20px', borderTop: `1px solid ${color.line}`, '& > * + *': { borderTop: `1px solid ${color.lineSoft}` } }),
   cardFoot: css({ marginTop: 'auto', padding: 20 }),
   full: css({ width: '100%' }),
   label: css(eyebrow, { color: color.sub }),
@@ -37,7 +37,7 @@ export const ps = {
   num: css(bigNumber, { fontSize: 28 }),
   unit: css({ marginLeft: 4, fontSize: 14, fontWeight: 400, letterSpacing: 0, color: color.sub }),
   /** 카드 안의 보더 타일 (예측값, 시간대 요약) */
-  tile: css({ padding: '16px 20px', border: `1px solid ${color.line}`, borderRadius: radius.md, transition: `border-color 0.3s ${theme.ease}`, '&:hover': { borderColor: color.brand300 } }),
+  tile: css({ padding: '16px 0', borderTop: `1px solid ${color.line}` }),
   /** 아이콘 + 문구 한 줄 인사이트 카드 */
   insight: css({ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 20, padding: '16px 20px' }),
   insightIcon: css({ flexShrink: 0, marginTop: 1, color: color.good, '& .material-symbols-rounded': { fontSize: '18px !important' } }),
