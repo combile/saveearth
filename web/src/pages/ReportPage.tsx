@@ -2,10 +2,9 @@ import { css } from '@emotion/react'
 import { useState } from 'react'
 import { CHART, GroupedBars, Legend } from '../components/charts'
 import { Icon } from '../components/Icon'
-import { Button, Card, CardHeader, Delta, MoreLink, PageHeader, SelectBox, UnderlineTabs } from '../components/ui'
+import { Button, Card, CardHeader, Delta, KpiCard, MoreLink, PageHeader, SelectBox, UnderlineTabs } from '../components/ui'
 import { DAILY, REPORTS } from '../data/mock'
-import { CountUp } from '../motion'
-import { bigNumber, eyebrow, theme } from '../theme'
+import { eyebrow, theme } from '../theme'
 
 const TABS = ['요약 리포트', '전력 사용 리포트', '탄소 배출 리포트', '사용자 참여 리포트']
 const SERIES = [
@@ -27,11 +26,6 @@ const s = {
     [theme.mq.md]: { gridTemplateColumns: 'repeat(2, 1fr)' },
     [theme.mq.xxl]: { gridTemplateColumns: 'repeat(4, 1fr)' },
   }),
-  kpi: css({ padding: '20px 24px' }),
-  kpiLabel: css({ fontSize: 14, color: c.sub }),
-  kpiValue: css(bigNumber, { marginTop: 8, fontSize: 32 }),
-  kpiUnit: css({ marginLeft: 6, fontSize: 14, fontWeight: 400, letterSpacing: 0, color: c.sub }),
-  kpiFoot: css({ marginTop: 6, fontSize: 14, color: c.sub }),
   good: css({ fontWeight: 500, color: c.good }),
   main: css({
     marginTop: 20,
@@ -82,19 +76,12 @@ export default function ReportPage() {
 
       <div css={s.kpis}>
         {[
-          { label: '총 전력 사용량', value: '56,782', unit: 'kWh', foot: <Delta value={-2.1} compare="전월 대비" /> },
-          { label: '총 탄소 배출량', value: '853', unit: 'tCO₂', foot: <Delta value={-4.8} compare="전월 대비" /> },
-          { label: '최대 전력', value: '1,842', unit: 'kW', foot: '2026.04.15 14:00' },
-          { label: '전력 예비율', value: '21.3', unit: '%', foot: <span css={s.good}>양호</span> },
+          { icon: 'bolt', label: '총 전력 사용량', value: '56,782', unit: 'kWh', foot: <Delta value={-2.1} compare="전월 대비" /> },
+          { icon: 'cloud', label: '총 탄소 배출량', value: '853', unit: 'tCO₂', foot: <Delta value={-4.8} compare="전월 대비" /> },
+          { icon: 'insights', label: '최대 전력', value: '1,842', unit: 'kW', foot: '2026.04.15 14:00' },
+          { icon: 'battery_charging_full', label: '전력 예비율', value: '21.3', unit: '%', foot: <span css={s.good}>양호</span> },
         ].map((k) => (
-          <Card key={k.label} css={s.kpi}>
-            <p css={s.kpiLabel}>{k.label}</p>
-            <p css={s.kpiValue}>
-              <CountUp value={k.value} />
-              <span css={s.kpiUnit}>{k.unit}</span>
-            </p>
-            <div css={s.kpiFoot}>{k.foot}</div>
-          </Card>
+          <KpiCard key={k.label} icon={<Icon name={k.icon} />} label={k.label} value={k.value} unit={k.unit} foot={k.foot} />
         ))}
       </div>
 

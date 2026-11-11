@@ -1,5 +1,5 @@
 import { css } from '@emotion/react'
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { CountUp, gsap, reducedMotion, useGSAP } from '../motion'
@@ -53,7 +53,7 @@ export function Delta({ value, compare }: { value: number; compare?: string }) {
 
 
 /** 작은 아이콘+라벨 줄 아래에 값을 두는 요약 카드. tone 은 예전 색 원형 배경용이라 지금은 쓰지 않는다 */
-export function KpiCard({ icon, label, value, unit, foot }: { icon: ReactNode; tone?: 'green' | 'lime' | 'purple' | 'teal'; label: string; value: string; unit: string; foot: ReactNode }) {
+export function KpiCard({ icon, label, value, unit, foot }: { icon: ReactNode; tone?: 'green' | 'lime' | 'purple' | 'teal'; label: string; value: string; unit: string; foot?: ReactNode }) {
   return (
     <Card css={s.kpi}>
       <p css={s.kpiLabel}>
@@ -65,7 +65,7 @@ export function KpiCard({ icon, label, value, unit, foot }: { icon: ReactNode; t
           <CountUp value={value} />
           <span css={s.kpiUnit}>{unit}</span>
         </p>
-        <div css={s.kpiFoot}>{foot}</div>
+        {foot && <div css={s.kpiFoot}>{foot}</div>}
       </div>
     </Card>
   )
@@ -103,19 +103,123 @@ export function UnderlineTabs({ items }: { items: { label: string; active: boole
   )
 }
 
+/** 커스텀 드롭다운. options 가 없으면 값만 보여 주는 읽기 전용 필드(날짜 등)로 그린다 */
 export function SelectBox({ label, value, options, onChange, icon, className }: { label?: string; value: string; options?: string[]; onChange?: (v: string) => void; icon?: ReactNode; className?: string }) {
+  const id = useId()
+  const root = useRef<HTMLDivElement>(null)
+  const menu = useRef<HTMLUListElement>(null)
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(0)
+  // onChange 를 안 넘긴 곳(목업 필터)도 선택이 바뀌어 보이도록 내부 상태를 둔다
+  const [inner, setInner] = useState(value)
+  const current = onChange ? value : inner
+
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => !root.current?.contains(e.target as Node) && setOpen(false)
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  useGSAP(
+    () => {
+      if (!open || reducedMotion()) return
+      gsap.from(menu.current, { autoAlpha: 0, y: -6, duration: 0.18, ease: 'power2.out' })
+    },
+    { dependencies: [open] },
+  )
+
+  const labelEl = label && (
+    <span id={`${id}-label`} css={{ flexShrink: 0, color: c.sub }}>
+      {label}
+    </span>
+  )
+
+  if (!options) {
+    return (
+      <div css={s.selectRoot} className={className}>
+        {labelEl}
+        <span css={s.selectWrap}>
+          <span css={s.select}>{value}</span>
+          <span css={s.selectIcon}>{icon}</span>
+        </span>
+      </div>
+    )
+  }
+
+  const show = () => {
+    setActive(Math.max(0, options.indexOf(current)))
+    setOpen(true)
+  }
+  const pick = (v: string) => {
+    setInner(v)
+    onChange?.(v)
+    setOpen(false)
+  }
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (!open) {
+      if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
+        e.preventDefault()
+        show()
+      }
+      return
+    }
+    const last = options.length - 1
+    const moves: Record<string, number> = { ArrowDown: Math.min(active + 1, last), ArrowUp: Math.max(active - 1, 0), Home: 0, End: last }
+    if (e.key in moves) {
+      e.preventDefault()
+      setActive(moves[e.key])
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      pick(options[active])
+    } else if (e.key === 'Escape' || e.key === 'Tab') {
+      setOpen(false)
+    }
+  }
+
   return (
-    <label css={s.selectRoot} className={className}>
-      {label && <span css={{ flexShrink: 0, color: c.sub }}>{label}</span>}
+    <div ref={root} css={s.selectRoot} className={className}>
+      {labelEl}
       <span css={s.selectWrap}>
-        <select value={value} onChange={(e) => onChange?.(e.target.value)} css={s.select}>
-          {(options ?? [value]).map((o) => (
-            <option key={o}>{o}</option>
-          ))}
-        </select>
-        <span css={s.selectIcon}>{icon ?? <Icon name="expand_more" size={18} />}</span>
+        <button
+          type="button"
+          role="combobox"
+          id={`${id}-button`}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={`${id}-list`}
+          aria-labelledby={label ? `${id}-label ${id}-button` : undefined}
+          aria-activedescendant={open ? `${id}-${active}` : undefined}
+          onClick={() => (open ? setOpen(false) : show())}
+          onKeyDown={onKeyDown}
+          css={[s.select, s.selectButton]}
+        >
+          {current}
+        </button>
+        <span css={[s.selectIcon, s.chevron, open && { transform: 'translateY(-50%) rotate(180deg)' }]}>{icon ?? <Icon name="expand_more" size={18} />}</span>
+        {open && (
+          <ul ref={menu} id={`${id}-list`} role="listbox" css={s.options}>
+            {options.map((o, i) => (
+              <li
+                key={o}
+                id={`${id}-${i}`}
+                role="option"
+                aria-selected={o === current}
+                data-active={i === active}
+                onMouseEnter={() => setActive(i)}
+                // mousedown 에서 버튼 포커스를 뺏기지 않게 한다
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pick(o)}
+                css={s.option}
+              >
+                {o}
+                {o === current && <Icon name="check" size={16} />}
+              </li>
+            ))}
+          </ul>
+        )}
       </span>
-    </label>
+    </div>
   )
 }
 
@@ -332,9 +436,10 @@ const s = {
   selectRoot: css({ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }),
   selectWrap: css({ position: 'relative', display: 'flex', flex: 1, alignItems: 'center' }),
   select: css({
+    display: 'block',
     width: '100%',
     minWidth: 144,
-    appearance: 'none',
+    whiteSpace: 'nowrap',
     borderRadius: r.sm,
     // 카드 안팎 어디서든 보이도록 흰 바탕 + 헤어라인
     border: `1px solid ${c.line}`,
@@ -345,6 +450,35 @@ const s = {
     transition: `border-color 0.25s ${ease}`,
     '&:hover': { borderColor: c.mute },
     '&:focus': { borderColor: c.ink },
+  }),
+  selectButton: css({ textAlign: 'left', cursor: 'pointer', '&[aria-expanded="true"]': { borderColor: c.ink } }),
+  // 떠 있는 목록이라 이 프로젝트에서 유일하게 그림자를 쓴다
+  options: css({
+    position: 'absolute',
+    top: 'calc(100% + 4px)',
+    left: 0,
+    zIndex: 30,
+    minWidth: '100%',
+    maxHeight: 240,
+    overflowY: 'auto',
+    borderRadius: r.md,
+    border: `1px solid ${c.line}`,
+    background: c.surface,
+    padding: 4,
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+  }),
+  option: css({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    borderRadius: r.sm,
+    padding: '7px 10px',
+    whiteSpace: 'nowrap',
+    color: c.sub,
+    cursor: 'pointer',
+    '&[data-active="true"]': { background: c.lineSoft, color: c.ink },
+    '&[aria-selected="true"]': { fontWeight: 600, color: c.ink },
   }),
   // 필드 높이의 정중앙에 고정
   selectIcon: css({ pointerEvents: 'none', position: 'absolute', right: 10, top: '50%', display: 'grid', transform: 'translateY(-50%)', color: c.mute }),

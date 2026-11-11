@@ -2,16 +2,14 @@ import { css } from '@emotion/react'
 import { Navigate, useParams } from 'react-router-dom'
 import { BuildingThumb } from '../../components/CampusMap'
 import { AreaTrend } from '../../components/charts'
-import { Card, CardHeader, Delta, PageHeader } from '../../components/ui'
+import { Icon } from '../../components/Icon'
+import { Card, CardHeader, Delta, KpiCard, PageHeader } from '../../components/ui'
 import { BUILDINGS, DAILY, getBuilding } from '../../data/mock'
-import { CountUp } from '../../motion'
 import { theme } from '../../theme'
 import { ps } from '../power/PowerTabs'
 
 const s = {
   stats: css({ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 20, [theme.mq.md]: { gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' } }),
-  stat: css({ padding: '20px 24px' }),
-  value: css(ps.num, { margin: '8px 0 4px' }),
 }
 
 export default function BuildingDetailPage() {
@@ -48,28 +46,9 @@ export default function BuildingDetailPage() {
 
         <div css={ps.stack}>
           <div css={s.stats}>
-            <Card css={s.stat}>
-              <p css={ps.label}>이번 달 사용량</p>
-              <p css={s.value}>
-                <CountUp value={b.monthKwh} />
-                <span css={ps.unit}>kWh</span>
-              </p>
-              <Delta value={b.delta} compare="전월 대비" />
-            </Card>
-            <Card css={s.stat}>
-              <p css={ps.label}>평균 일일 사용량</p>
-              <p css={s.value}>
-                <CountUp value={Math.round(b.monthKwh / 30)} />
-                <span css={ps.unit}>kWh</span>
-              </p>
-            </Card>
-            <Card css={s.stat}>
-              <p css={ps.label}>전력 사용 순위</p>
-              <p css={s.value}>
-                {rank}
-                <span css={ps.unit}>위 / {BUILDINGS.length}개 건물</span>
-              </p>
-            </Card>
+            <KpiCard icon={<Icon name="bolt" />} label="이번 달 사용량" value={b.monthKwh.toLocaleString()} unit="kWh" foot={<Delta value={b.delta} compare="전월 대비" />} />
+            <KpiCard icon={<Icon name="bar_chart" />} label="평균 일일 사용량" value={Math.round(b.monthKwh / 30).toLocaleString()} unit="kWh" />
+            <KpiCard icon={<Icon name="leaderboard" />} label="전력 사용 순위" value={String(rank)} unit={`위 / ${BUILDINGS.length}개 건물`} />
           </div>
 
           <Card css={ps.grow}>
