@@ -20,6 +20,9 @@ const anchor = css({ position: 'absolute', transform: 'translate(-50%, -50%)' })
 const s = {
   // 말풍선 크기가 맵 폭(cqw)에 비례하도록 컨테이너로 선언
   root: css({ containerType: 'inline-size', position: 'relative', aspectRatio: '1670 / 850', width: '100%', userSelect: 'none' }),
+  // 좁은 화면: 말풍선이 겹치지 않게 지도 폭을 지키고 옆으로 밀어 보게 한다
+  frame: css({ '@media (max-width: 767px)': { overflowX: 'auto', overscrollBehaviorX: 'contain' } }),
+  rootWide: css({ '@media (max-width: 767px)': { minWidth: 640 } }),
   img: css(fill, { objectFit: 'contain' }),
   lines: css(fill, { pointerEvents: 'none' }),
   dot: css(anchor, { width: 6, height: 6, borderRadius: '50%', background: c.ink, boxShadow: `0 0 0 2px ${c.surface}` }),
@@ -98,7 +101,8 @@ export default function CampusMap({ callouts = [], pins = [], linkTo, legend, cl
   const root = useRef<HTMLDivElement>(null)
 
   return (
-    <div ref={root} css={s.root} className={className}>
+    <div css={s.frame} className={className}>
+    <div ref={root} css={[s.root, callouts.length > 0 && s.rootWide]}>
       <img src={MAP_SRC} alt="국립한밭대학교 3D 캠퍼스 맵" css={s.img} draggable={false} />
 
       {callouts.length > 0 && (
@@ -159,6 +163,7 @@ export default function CampusMap({ callouts = [], pins = [], linkTo, legend, cl
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }

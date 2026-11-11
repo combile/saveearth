@@ -1,5 +1,5 @@
 import { css } from '@emotion/react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { Icon } from '../components/Icon'
@@ -48,11 +48,34 @@ export default function DashboardLayout() {
   const content = useReveal<HTMLDivElement>([pathname])
   const powerPanel = useRef<HTMLDivElement>(null)
   const bar = useRef<HTMLDivElement>(null)
+  // 1024px 미만: 사이드바가 왼쪽에서 밀려 나오는 서랍이 된다
+  const [menuOpen, setMenuOpen] = useState(false)
 
+  useEffect(() => setMenuOpen(false), [pathname])
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [menuOpen])
 
   return (
     <div css={s.root}>
-      <aside css={s.aside}>
+      <header css={s.topbar}>
+        <Link to="/" css={s.topLogo} aria-label="대시보드로">
+          <Icon name="potted_plant" size={28} css={{ color: theme.color.lime }} />
+          탄소중립 캠퍼스
+        </Link>
+        <button type="button" css={s.menuBtn} onClick={() => setMenuOpen(true)} aria-label="메뉴 열기" aria-expanded={menuOpen} aria-controls="side-nav">
+          <Icon name="menu" size={24} />
+        </button>
+      </header>
+      {menuOpen && <div css={s.backdrop} onClick={() => setMenuOpen(false)} />}
+
+      <aside id="side-nav" css={s.aside} data-open={menuOpen || undefined}>
+        <button type="button" css={[s.menuBtn, s.closeBtn]} onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">
+          <Icon name="close" size={22} />
+        </button>
         <Link to="/" css={s.logo}>
           <Icon name="potted_plant" size={40} css={{ color: theme.color.lime }} />
           <div css={{ lineHeight: 1.25 }}>
@@ -129,18 +152,56 @@ export default function DashboardLayout() {
 const active = '&[aria-current="page"], &[data-active="true"]'
 
 const s = {
-  root: css({ display: 'flex', minHeight: '100vh' }),
-  aside: css({
+  root: css({ display: 'flex', flexDirection: 'column', minHeight: '100vh', [theme.mq.lg]: { flexDirection: 'row' } }),
+
+  // 모바일 상단 바 (lg 이상에서는 숨김)
+  topbar: css({
     position: 'sticky',
     top: 0,
+    zIndex: 40,
     display: 'flex',
-    height: '100vh',
-    width: 240,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 56,
+    padding: '0 8px 0 16px',
+    background: theme.color.night,
+    color: theme.color.nightInk,
+    '& :focus-visible': { outlineColor: theme.color.lime },
+    [theme.mq.lg]: { display: 'none' },
+  }),
+  topLogo: css({ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700 }),
+  menuBtn: css({
+    display: 'grid',
+    placeItems: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: theme.radius.sm,
+    color: theme.color.nightInk,
+    transition: `background 0.2s ${theme.ease}`,
+    '&:hover': { background: theme.color.nightHover },
+  }),
+  closeBtn: css({ position: 'absolute', top: 12, right: 8, [theme.mq.lg]: { display: 'none' } }),
+  backdrop: css({ position: 'fixed', inset: 0, zIndex: 45, background: theme.scrim(0.5), [theme.mq.lg]: { display: 'none' } }),
+
+  aside: css({
+    // 모바일: 화면 밖에 있다가 data-open 이면 밀려 들어오는 서랍
+    position: 'fixed',
+    inset: '0 auto 0 0',
+    zIndex: 50,
+    display: 'flex',
+    height: '100dvh',
+    width: 'min(280px, 85vw)',
     flexShrink: 0,
     flexDirection: 'column',
     background: theme.color.night,
     padding: '24px 12px',
     color: theme.color.nightInk,
+    transform: 'translateX(-100%)',
+    visibility: 'hidden',
+    transition: `transform 0.25s ${theme.ease}, visibility 0s 0.25s`,
+    '&[data-open]': { transform: 'none', visibility: 'visible', transition: `transform 0.25s ${theme.ease}` },
+    '@media (prefers-reduced-motion: reduce)': { transition: 'none', '&[data-open]': { transition: 'none' } },
+    [theme.mq.lg]: { position: 'sticky', top: 0, zIndex: 'auto', height: '100vh', width: 240, transform: 'none', visibility: 'visible', transition: 'none' },
     // 다크 면에서는 기본 초록 링이 안 보여 라임으로
     '& :focus-visible': { outlineColor: theme.color.lime },
   }),
@@ -202,5 +263,5 @@ const s = {
   track: css({ marginTop: 8, height: 3, overflow: 'hidden', borderRadius: theme.radius.pill, background: theme.onDark(0.12) }),
   bar: css({ height: '100%', borderRadius: theme.radius.pill, background: theme.color.lime }),
 
-  main: css({ minWidth: 0, flex: 1, padding: '24px 28px' }),
+  main: css({ minWidth: 0, flex: 1, padding: '20px 16px 32px', [theme.mq.md]: { padding: '24px 28px' } }),
 }
